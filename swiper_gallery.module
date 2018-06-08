@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * @file
+ * Module file.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function swiper_gallery_theme($existing, $type, $theme, $path) {
+  return [
+    // The main gallery template.
+    'swiper_gallery' => [
+      'variables' => [
+        'gallery_id' => '',
+        'slide_id_prefix' => '',
+        'type' => 'fs-mobile-scroll',
+        'title' => '',
+        'preview_headline' => '',
+        'preview' => '',
+        'slides' => [],
+        'thumbnails' => [],
+      ],
+    ],
+    // Headline above the gallery.
+    'swiper_gallery_headline' => [
+      'variables' => [
+        'title' => '',
+        'counter' => '',
+      ],
+    ],
+    // Preview image with the launcher button.
+    'swiper_gallery_preview' => [
+      'variables' => [
+        'image' => '',
+        'description' => '',
+        'copyright' => '',
+        'launcher_main_text' => '',
+        'launcher_footer_text' => '',
+        'show_description' => FALSE,
+        'footer_thumbs' => [],
+        'image_count' => 0,
+      ],
+    ],
+    // A single slide inside the gallery.
+    'swiper_gallery_slide' => [
+      'variables' => [
+        'id' => '',
+        'slide_id_prefix' => '',
+        'variant' => '',
+        'classes' => '',
+        'attributes' => '',
+        'media' => '',
+      ],
+    ],
+    // The gallery's thumbnails.
+    'swiper_gallery_thumbnail' => [
+      'variables' => [
+        'id' => '',
+        'image' => '',
+        'slide_id_prefix' => '',
+        'variant' => 'imageonly',
+      ],
+    ],
+  ];
+}
+
+/**
+ * Implements template_preprocess_image().
+ */
+function swiper_gallery_preprocess_image(&$variables) {
+  // For all gallery images remove the src attribute and replace it with
+  // data-src attribute and add class swiper-lazy to be able to lazy load
+  // images.
+  if ($variables['style_name'] == 'swiper_gallery_slide') {
+    $variables['attributes']['data-src'] = $variables['attributes']['src'];
+    $variables['attributes']['class'] = 'swiper-lazy';
+    unset($variables['attributes']['src']);
+
+    // Don't show alternative text or title, because it's shown while loading
+    // the image.
+    unset($variables['attributes']['alt']);
+    unset($variables['attributes']['title']);
+
+    // If width or height of the image is not calculated correctly and is set to
+    // 0 unset these attributes as those attributes with a 0-value will prevent
+    // lazy loading of the images with the swiper gallery.
+    if (empty($variables['attributes']['width'])) {
+      unset($variables['attributes']['width']);
+    }
+    if (empty($variables['attributes']['height'])) {
+      unset($variables['attributes']['height']);
+    }
+  }
+}

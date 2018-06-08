@@ -1,0 +1,42 @@
+<div class="gallery gallery-{{ gallery_id }} is-inactive" data-gallery-type="{{ type|default('default') }}" data-gallery-title="{{ title }}" data-gallery-slide-id-prefix="{{ slide_id_prefix }}">
+
+  {% block preview_headline %}
+    {{ preview_headline }}
+  {% endblock %}
+
+  <section class='gallery__preview'>
+    {% block preview %}
+      {{ preview }}
+    {% endblock %}
+  </section>
+
+  <section class='gallery__main'>
+    <div class='gallery__container swiper-container'>
+      <div class="gallery__close featherlight-close"></div>
+      <div class="gallery__header">
+        <div class="gallery__title">{{ title }}</div>
+        <div class='gallery__pagination'></div>
+      </div>
+      <div class='gallery__wrapper swiper-wrapper'>
+        {% block slides %}
+            {{ slides }}
+        {% endblock %}
+      </div>
+      <div class="gallery__button-wrapper">
+        <div class='gallery__button-prev'></div>
+        <div class='gallery__button-next'></div>
+      </div>
+    </div>
+  </section>
+
+  <section class='gallery__thumbs'>
+    <div class='gallery__container swiper-container'>
+      <div class='gallery__wrapper swiper-wrapper'>
+        {% block thumbnails %}
+          {{ thumbnails }}
+        {% endblock %}
+      </div>
+    </div>
+  </section>
+
+</div>

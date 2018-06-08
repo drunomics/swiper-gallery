@@ -1,0 +1,27 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js -p --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "dev": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
+  },
+  "devDependencies": {
+    "bourbon": "^4.3.4",
+    "breakpoint-sass": "^2.7.1",
+    "cross-env": "^3.2.3",
+    "import-glob-loader": "^1.1.0",
+    "jquery": "^2.2.4",
+    "laravel-mix": "^0.8.3",
+    "normalize.scss": "^0.1.0",
+    "singularitygs": "^1.8.0"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "enquire.js": "^2.1.6",
+    "featherlight": "^1.7.6",
+    "loglevel": "^1.4.1",
+    "nodelist-foreach-polyfill": "^1.2.0",
+    "swiper": "^3.4.2",
+    "underscore": "^1.8.3"
+  }
+}

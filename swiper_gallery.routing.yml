@@ -1,0 +1,6 @@
+swiper_gallery.loading_icon:
+  path: '/swiper_gallery/loading_icon'
+  defaults:
+    _controller: '\Drupal\swiper_gallery\Controller\SwiperGalleryController::getLoadingIcon'
+  requirements:
+    _access: 'TRUE'

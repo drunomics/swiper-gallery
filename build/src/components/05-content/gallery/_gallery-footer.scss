@@ -1,0 +1,39 @@
+.gallery-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  @include breakpoint($bp--tablet) {
+    flex-wrap: nowrap;
+  }
+
+  &__show-all,
+  &__thumb {
+    width: 49%;
+    display: inline-block;
+
+    &:nth-of-type(4n+3),
+    &:nth-of-type(4n+4) {
+      margin-top: 8px;
+    }
+
+    @include breakpoint($bp--tablet) {
+      width: 24%;
+      &:nth-of-type(4n+3),
+      &:nth-of-type(4n+4) {
+        margin-top: 0;
+      }
+    }
+
+    img {
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  &__show-all {
+    position: relative;
+    background: $c--light_grey;
+    color: $c--dark_grey;
+  }
+}

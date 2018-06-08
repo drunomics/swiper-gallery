@@ -1,0 +1,12 @@
+{
+  "name": "drunomics/swiper_gallery",
+  "description": "Swiper gallery media integration.",
+  "type": "drupal-module",
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "drunomics",
+      "email": "hello@drunomics.com"
+    }
+  ]
+}

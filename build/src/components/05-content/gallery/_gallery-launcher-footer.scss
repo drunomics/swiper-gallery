@@ -1,0 +1,40 @@
+.gallery-launcher-footer {
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+
+  &__counter {
+    text-align: center;
+    font-size: 120%;
+  }
+
+  &__text {
+    font-size: 100%;
+    margin: rem(8);
+    text-transform: uppercase;
+
+    @include breakpoint($bp--tablet) {
+      font-size: rem(12);
+    }
+  }
+
+  &__icon {
+    @include icomoon-icon-apply('gallery');
+    font-size: rem(30);
+    margin: 0 auto;
+
+    &:after {
+      background: $c--black__25;
+      content: '';
+      display: inline-block;
+      position: relative;
+      top: 0;
+      left: rem(-49);
+      z-index: -1;
+      height: rem(42);
+    }
+  }
+}

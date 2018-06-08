@@ -1,0 +1,14 @@
+langcode: en
+status: true
+dependencies: {  }
+name: swiper_gallery_slide
+label: 'Swiper Gallery Slide'
+effects:
+  0f090007-3d8c-4d0c-85d1-cf7289bc92c7:
+    uuid: 0f090007-3d8c-4d0c-85d1-cf7289bc92c7
+    id: image_scale
+    weight: 1
+    data:
+      width: 1000
+      height: 600
+      upscale: false

@@ -1,0 +1,53 @@
+.gallery-launcher-main {
+  position: absolute;
+  left: 0;
+  top: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  display: none;
+
+  &__wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    color: $c--white;
+    text-align: center;
+  }
+
+  &__icon {
+    @include icomoon-icon-apply('gallery');
+    font-size: rem(50);
+    margin: 0 auto;
+    padding-left: rem(50);
+
+    &:after {
+      background: $c--black__25;
+      content: '';
+      display: inline-block;
+      position: relative;
+      top: 0;
+      left: rem(-49);
+      z-index: -1;
+      width: rem(48);
+      height: rem(42);
+    }
+  }
+
+  &:hover {
+    color: $c--white;
+  }
+
+  &__text {
+    @extend %font-size-base;
+    padding: rem(10);
+    padding-bottom: rem(12);
+    background: $c--black__25;
+    border: 1px solid $c--white;
+    border-radius: 4px;
+    line-height: rem(14);
+    text-transform: uppercase;
+  }
+}

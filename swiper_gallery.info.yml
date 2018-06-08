@@ -1,0 +1,7 @@
+type: module
+name: Swiper Gallery
+description: 'Responsive JavaScript Image Gallery.'
+package: Media
+core: 8.x
+dependencies:
+  - media_entity:media_entity

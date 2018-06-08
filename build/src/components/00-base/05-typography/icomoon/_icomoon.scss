@@ -1,0 +1,92 @@
+@font-face {
+  font-family: 'icomoon';
+  src:  url('fonts/icomoon.eot?4s8e48');
+  src:  url('fonts/icomoon.eot?4s8e48#iefix') format('embedded-opentype'),
+  url('fonts/icomoon.ttf?4s8e48') format('truetype'),
+  url('fonts/icomoon.woff?4s8e48') format('woff'),
+  url('fonts/icomoon.svg?4s8e48#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+$icomoon_icons: (
+  info: "\e910",
+  lock: "\e911",
+  compass: "\e912",
+  office: "\e913",
+  cal: "\e91e",
+  phone: "\e91f",
+  abc: "\e900",
+  arrow-circle-left: "\e901",
+  arrow-circle-right: "\e902",
+  arrow-left: "\e903",
+  arrow-right: "\e904",
+  close: "\e905",
+  counter: "\e906",
+  facebook: "\e907",
+  flipboard: "\e908",
+  gallery: "\e909",
+  hamburger: "\e90a",
+  haus: "\e90b",
+  instagram: "\e90c",
+  login: "\e90d",
+  logo: "\e90e",
+  mail: "\e90f",
+  minus: "\e914",
+  pinterest: "\e915",
+  plus: "\e916",
+  search: "\e917",
+  sign: "\e918",
+  triangle-down: "\e919",
+  triangle-up: "\e91a",
+  twitter: "\e91b",
+  video: "\e91c",
+  whatsapp: "\e920",
+  zoom: "\e91d",
+);
+
+%icomoon-icon {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/// Applies font icon by name.
+/// @param {$icon} icon name from the icomoon font.
+/// @param {$after} whether to add the icon content in the `:after`. The
+/// `:before` is used by default.
+@mixin icomoon-icon-apply($icon, $after: false) {
+  @if map-has-key($icomoon_icons, $icon) {
+    $content: map-get($icomoon_icons, $icon);
+    @if ($after) {
+      &:after {
+        content: $content;
+        @extend %icomoon-icon;
+      }
+    } @else {
+      &:before {
+        content: $content;
+        @extend %icomoon-icon;
+      }
+    }
+  }
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  @extend %icomoon-icon;
+}
+
+@each $icon, $content in $icomoon_icons {
+  .icon-haus-#{$icon} {
+    @include icomoon-icon-apply($icon);
+  }
+}

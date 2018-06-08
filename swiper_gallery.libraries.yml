@@ -1,0 +1,9 @@
+swiper_gallery:
+  js:
+    js/swiper_gallery.js: { minified: true }
+    build/assets/main.js: { minified: true }
+  css:
+    base:
+      build/assets/main.css: { minified: true }
+  dependencies:
+    - core/drupalSettings

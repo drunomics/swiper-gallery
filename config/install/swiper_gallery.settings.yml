@@ -1,0 +1,4 @@
+loading_icon:
+  type: 'module'
+  name: 'swiper_gallery'
+  path: '/build/assets/images/infinity-loader.gif'

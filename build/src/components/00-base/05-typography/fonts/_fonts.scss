@@ -1,0 +1,172 @@
+// Font sizes:
+$fonts: (
+  xxsmall: (
+    font-size: rem(9),
+    line-height: rem(9 * 1.3),
+  ),
+  xsmall: (
+    font-size: rem(12),
+    line-height: rem(12 * 1.3),
+  ),
+  small: (
+    font-size: rem(14),
+    line-height: rem(14 * 1.3),
+  ),
+  base: (
+    font-size: rem(16),
+    line-height: rem(16 * 1.3),
+  ),
+  large: (
+    font-size: rem(18),
+    line-height: rem(18 * 1.3),
+  ),
+  larger: (
+    font-size: rem(20),
+    line-height: rem(20 * 1.3),
+  ),
+  xlarge: (
+    font-size: rem(24),
+    line-height: rem(24 * 1.3),
+  ),
+  xxlarge: (
+    font-size: rem(37),
+    line-height: rem(37 * 1.3),
+  ),
+);
+
+/// Gets font property value.
+/// {$font-name} Font name.
+/// {$property} Font property.
+/// @see $fonts
+@function getFontPropertyValue($font-name, $property) {
+  @if map-has-key($fonts, $font-name) {
+    $font-map: map-get($fonts, $font-name);
+    @if map-has-key($font-map, $property) {
+      @return map-get($font-map, $property);
+    }
+  }
+  @return null;
+}
+
+/// Applies font property value.
+/// {$font-name} Font name.
+/// {$property} Font property.
+/// @see $fonts
+@mixin applyFontProperty($font-name, $property) {
+  $val: getFontPropertyValue($font-name, $property);
+  @if ($val != null) {
+    #{$property}: $val;
+  }
+}
+
+// Normal font size is 16px.
+$fs--html: 100% !default;
+$lh--html: modular-scale(1, $fs--html) !default;
+
+// Base font.
+// Normal font for use in:
+// - body text
+// - buttons
+// - main menu
+// - footer menu
+$ff--base: sans-serif !default;
+$fw--base: 400 !default;
+$ls--base: 0 !default;
+
+// Bold font for use in:
+// - headlines
+$ff--base-bold: $ff--base !default;
+$fw--base-bold: 700 !default;
+
+// Mono font currently not in use.
+$ff--mono: 'Source Code Pro' !default;
+$fs--mono: getFontPropertyValue('base', 'font-size');
+$lh--mono: getFontPropertyValue('base', 'line-height');
+$ls--mono: $ls--base;
+
+// Hides text. Useful for image-buttons.
+%hide-text {
+  text-indent: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+// Normal font size: ~16x.
+%font-size-normal {
+  @include applyFontProperty('base', 'font-size');
+  @include applyFontProperty('base', 'line-height');
+  letter-spacing: $ls--base;
+}
+
+%font-normal--base {
+  @extend %font-size-normal;
+  font-family: $ff--base;
+  font-weight: $fw--base;
+  font-style: normal;
+}
+
+%font-normal--base-italic {
+  @extend %font-normal--base;
+  font-style: italic;
+}
+
+%font-bold--base {
+  font-family: $ff--base-bold;
+  font-weight: $fw--base-bold;
+  font-style: normal;
+}
+
+%font-bold--base-italic {
+  @extend %font-bold--base;
+  font-style: italic;
+}
+
+%font-base--mono {
+  @extend %font-size-normal;
+  font-family: $ff--mono;
+  font-weight: $fw--base;
+}
+
+%font-size-xxsmall {
+  @include applyFontProperty('xxsmall', 'font-size');
+  @include applyFontProperty('xxsmall', 'line-height');
+}
+
+%font-size-xsmall {
+  @include applyFontProperty('xsmall', 'font-size');
+  @include applyFontProperty('xsmall', 'line-height');
+}
+
+%font-size-small {
+  @include applyFontProperty('small', 'font-size');
+  @include applyFontProperty('small', 'line-height');
+}
+
+%font-size-base {
+  @include applyFontProperty('base', 'font-size');
+  @include applyFontProperty('base', 'line-height');
+}
+
+%font-size-large {
+  @include applyFontProperty('large', 'font-size');
+  @include applyFontProperty('large', 'line-height');
+}
+
+%font-size-larger {
+  @include applyFontProperty('larger', 'font-size');
+  @include applyFontProperty('larger', 'line-height');
+}
+
+%font-size-xlarge {
+  @include applyFontProperty('xlarge', 'font-size');
+  @include applyFontProperty('xlarge', 'line-height');
+}
+
+%font-size-xxlarge {
+  @include applyFontProperty('xxlarge', 'font-size');
+  @include applyFontProperty('xxlarge', 'line-height');
+}
+
+.visually-hidden {
+  display: none;
+}
