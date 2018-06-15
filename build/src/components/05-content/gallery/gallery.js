@@ -26,20 +26,27 @@ class Gallery {
    * The class will only be attached if the data-gallery-type matches the
    * defined type.
    */
-  static attach(context, selector = '.gallery') {
+  static attach(context, settings, selector = '.gallery') {
     let self = this;
     context.querySelectorAll(selector).forEach((element) => {
       if (element.getAttribute('data-gallery-type') !== self.type) {
           return;
       }
+
+      var instance_settings = {};
+      for (var key in settings) {
+        if (element.classList.contains(key)) {
+          instance_settings = settings[key];
+        }
+      }
+      element.gallery = new self(element, instance_settings);
       element.querySelectorAll('.gallery-launcher').forEach((e) => {
-        element.gallery = new self(element);
         if (e.classList.contains('gallery-launcher-main')) {
           element.gallery.showSlideIfGiven();
         }
         e.addEventListener('click', () => {
           // Ensure there is a new, clean gallery instance on every click.
-          element.gallery = new self(element);
+          element.gallery = new self(element, instance_settings);
           element.gallery.launch('');
         })
       });
@@ -60,7 +67,8 @@ class Gallery {
     })
   }
 
-  constructor(element) {
+  constructor(element, settings) {
+    this.settings = settings || {};
     this.originalElement = element;
     this.element = element.cloneNode(true);
 
@@ -511,6 +519,7 @@ class Gallery {
       grabCursor: true,
       hashnav: true,
       hashnavWatchState: true,
+      replaceState: !!this.settings.hashNavReplaceState,
       keyboardControl: true,
       pagination: '.gallery__pagination',
       paginationType: 'fraction',

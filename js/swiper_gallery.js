@@ -13,8 +13,8 @@
   Drupal.behaviors.swiperGallery = {
     attach: function (context, settings) {
       if (window.hasOwnProperty('SwiperGallery')) {
-        window.SwiperGallery.gallery.attach(context);
-        window.SwiperGallery.galleryMobile.attach(context);
+        window.SwiperGallery.gallery.attach(context, settings.swiperGallery);
+        window.SwiperGallery.galleryMobile.attach(context, settings.swiperGallery);
       }
     }
   };

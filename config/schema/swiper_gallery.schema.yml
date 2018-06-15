@@ -26,3 +26,6 @@ field.formatter.settings.swiper_gallery:
     image_style_gallery_thumbnail:
       type: text
       label: 'Image style gallery thumbnail'
+    hash_nav_replace_state:
+      type: boolean
+      label: 'Hash Navigation: replace url state'

@@ -102,6 +102,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
         'image_style_preview_thumbnail' => 'swiper_gallery_preview_thumbnail',
         'image_style_gallery_slide' => 'swiper_gallery_slide',
         'image_style_gallery_thumbnail' => 'swiper_gallery_thumbnail',
+        'hash_nav_replace_state' => FALSE,
       ] + parent::defaultSettings();
   }
 
@@ -161,6 +162,13 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       ];
     }
 
+    $form['hash_nav_replace_state'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Hash Navigation: replace url state'),
+      '#description' => $this->t('Replace current url state with the new one instead of adding it to history when sliding through the gallery.'),
+      '#default_value' => $this->getSetting('hash_nav_replace_state'),
+    ];
+
     return $form;
   }
 
@@ -186,12 +194,21 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     $slides = $this->buildSlides($entities);
     $preview_headline = $this->buildPreviewHeadline($items->getEntity()->label(), count($entities));
     $thumbnails = $this->buildImages($entities, 'swiper_gallery_thumbnail', $this->getSetting('image_style_gallery_thumbnail'));
+    $referring_paragraph = $items->getEntity()->_referringItem->getEntity();
+    $settings_key = 'gallery-' . $referring_paragraph->id() . '-' . $this->gallery->id();
 
     $build = [
       '#theme' => 'swiper_gallery',
       '#attached' => [
         'library' => [
           'swiper_gallery/swiper_gallery',
+        ],
+        'drupalSettings' => [
+          'swiperGallery' => [
+            $settings_key => [
+              'hashNavReplaceState' => (bool) $this->getSetting('hash_nav_replace_state'),
+            ],
+          ],
         ],
       ],
       '#slide_id_prefix' => $this->getSlideIdPrefix(),
@@ -201,6 +218,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#slides' => $slides,
       '#thumbnails' => $thumbnails,
       '#gallery_id' => $this->gallery->id(),
+      '#paragraph_id' => $referring_paragraph->id(),
     ];
 
     CacheableMetadata::createFromObject($items->getEntity())->applyTo($build);
