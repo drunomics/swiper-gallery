@@ -37,6 +37,7 @@ class Gallery {
       for (var key in settings) {
         if (element.classList.contains(key)) {
           instance_settings = settings[key];
+          break;
         }
       }
       element.gallery = new self(element, instance_settings);
