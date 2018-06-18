@@ -69,3 +69,11 @@ See https://github.com/creationix/nvm
 
 * Compile assets (production mode)
 `npm run production`
+
+## Reset node installation 
+
+```bash
+rm -rf node_modules
+npm cache clear --force
+npm install
+```
