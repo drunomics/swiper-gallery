@@ -1,4 +1,4 @@
-import "babel-polyfill";
+import 'idempotent-babel-polyfill';
 import 'nodelist-foreach-polyfill';
 import log from 'loglevel';
 
