@@ -675,6 +675,8 @@ class Gallery {
     log.info('-- creating swiper instance for: ' + this.type);
     this._initializeConfig();
     this.swiper = new Swiper(this.swiperContainer, this.config);
+    log.info(this.swiper);
+
     this.adHandler.init(this.swiper, breakpoints.isMobile());
     // Ensure the hash of the first slide is written once enabled in
     // fullscreen.

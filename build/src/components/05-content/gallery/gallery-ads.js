@@ -16,7 +16,11 @@ class GalleryAds {
    */
   init(swiper, isMobile) {
     log.info('GalleryAds init swiper');
-    log.info(swiper);
+
+    if (typeof(Drupal.ad_entity) === "undefined") {
+      log.info('Ad entity library not found.');
+      return;
+    }
 
     this.swiper = swiper;
     this.isMobile = isMobile;
@@ -70,7 +74,7 @@ class GalleryAds {
     let index = swiper.activeIndex + offset;
     let slide = swiper.slides[index];
 
-    if (slide.querySelectorAll('.gallery-ad').length > 0) {
+    if (typeof(slide) !== "undefined" && slide.querySelectorAll('.gallery-ad').length > 0) {
       this.initializeAd(slide);
     }
   }
@@ -136,7 +140,7 @@ class GalleryAds {
    * Update swiper, fix heights if necessary.
    */
   updateSwiper() {
-    if (!this.isMobile) {
+    if (!this.isMobile && typeof(this.swiper.slides[0]) !== "undefined") {
       // Fix heights, set it from height of the first slide.
       let firstSlide = this.swiper.slides[0];
       let height = firstSlide.querySelector('.media').getAttribute('height');
