@@ -77,9 +77,11 @@ $gallery--max-width: 1000px;
   }
 
   &-ad {
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
+    @include breakpoint($bp--tablet) {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
 
     .ad-entity__container {
       display: inline-block;

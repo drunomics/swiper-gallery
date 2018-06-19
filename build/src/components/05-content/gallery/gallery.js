@@ -4,6 +4,7 @@ import enquire from 'enquire.js';
 import log from 'loglevel';
 import { debounce } from 'underscore';
 import GalleryPI from './gallery-pi';
+import GalleryAds from './gallery-ads';
 import { SwiperGalleryBreakpoints } from '../../00-base/02-breakpoints/breakpoints'
 
 let breakpoints = new SwiperGalleryBreakpoints();
@@ -72,6 +73,7 @@ class Gallery {
     this.settings = settings || {};
     this.originalElement = element;
     this.element = element.cloneNode(true);
+    this.adHandler = new GalleryAds();
 
     this.type = this.element.getAttribute('data-gallery-type');
     this.title = this.element.getAttribute('data-gallery-title');
@@ -94,20 +96,6 @@ class Gallery {
     this.orientationchange = false;
 
     this.alreadyOpened = false;
-  }
-
-  setAdSwiperSlideHeight() {
-    if (breakpoints.isMobile()) {
-      return;
-    }
-    let slides = [...this.content.querySelectorAll('.gallery-slide')];
-    let firstSlide = slides[0];
-    let adslides = slides.filter((e) => {
-      return e.dataset.hash.indexOf('slide-ad') !== -1;
-    });
-    adslides.forEach((e) => {
-      e.clientHeight = firstSlide.querySelector('.media').clientHeight;
-    });
   }
 
   /**
@@ -247,7 +235,6 @@ class Gallery {
         }
       }
     }
-    this.setAdSwiperSlideHeight();
     this.swiper.update(true);
   }
 
@@ -685,16 +672,16 @@ class Gallery {
   }
 
   _createSwiper() {
-    log.info('-- create swiper');
+    log.info('-- creating swiper instance for: ' + this.type);
     this._initializeConfig();
     this.swiper = new Swiper(this.swiperContainer, this.config);
+    this.adHandler.init(this.swiper, breakpoints.isMobile());
     // Ensure the hash of the first slide is written once enabled in
     // fullscreen.
     this.swiper.hashnav.setHash();
     // Track page impression of first slide.
     GalleryPI.trackNewPageImpression();
 
-    log.info('Creating swiper thumbs instance');
     this.swiperThumb = new Swiper(this.swiperThumbContainer, this.thumbConfig);
     this.swiperThumb.params.control = this.swiper;
     this.swiper.params.control = this.swiperThumb;
@@ -774,25 +761,37 @@ class GalleryFsMobileScroll extends Gallery {
           preloadImages: false,
           // Enable lazy loading
           lazyLoading: true,
-          paginationCustomRender: function () {
-            return self.setPagination();
+          paginationCustomRender: function (swiper, current, total) {
+            return self.setPagination(swiper, current, total);
           }
         });
-        this._initializeAllAds();
       },
       unmatch: () => this.applyDefaultConfig(),
     });
   }
 
-  setPagination() {
+  /**
+   * Custom pagination handler submitted to the Swiper config.
+   *
+   * This takes unloades slides into account. Without this, Swiper will show
+   * wrong pagination numbers.
+   *
+   * @param {Object} swiper
+   *   Swiper instance.
+   * @param {int} current
+   *   Current slide.
+   * @param {int} total
+   *   Total slides.
+   *
+   * @returns {string}
+   */
+  setPagination(swiper, current, total) {
     // Get gallery slides.
     let slides = this.content.querySelectorAll('.swiper-wrapper')[0].querySelectorAll('.gallery-slide');
     let activeSlide = slides[0].parentElement.querySelector('.swiper-slide-active');
-    let current = ([...slides].indexOf(activeSlide) + 1);
-    let total = parseInt(slides.length, 10);
-
-    // Set counter.
-    return '<span class="swiper-pagination-current">' + current + '</span> / <span class="swiper-pagination-total">' + total + '</span>';
+    let calculated_current = ([...slides].indexOf(activeSlide) + 1);
+    let calculated_total = parseInt(slides.length, 10);
+    return '<span class="swiper-pagination-current">' + calculated_current + '</span> / <span class="swiper-pagination-total">' + calculated_total + '</span>';
   }
 
   _createSwiper() {
@@ -815,15 +814,7 @@ class GalleryFsMobileScroll extends Gallery {
       swiper.update();
     })
 
-    // Catch the active slide and display ads after fifth slide.
     this.swiper.on('slideChangeStart', (swiper) => {
-      if (((swiper.realIndex + 1) % 6) === 0) {
-        let gallery_ad = self.swiperContainer.querySelectorAll('.gallery-ad')[((swiper.realIndex + 1) / 6) - 1];
-        if (typeof gallery_ad !== "undefined") {
-          self._initializeAd(gallery_ad);
-        }
-      }
-
       // Get active gallery slide.
       let slides = this.content.querySelector('.swiper-wrapper').querySelectorAll('.gallery-slide');
       let index = 0;
@@ -837,28 +828,20 @@ class GalleryFsMobileScroll extends Gallery {
       });
       this.activeSlide = parseInt(index, 10);
     });
+
+    // Updates the initial pagination which is showing negative numbers.
+    // The initial pagination is not showing data from the custom pagination
+    // handler, eg. for 1/11 it will show 12/-11, which must be a calculation
+    // error inside of swiper.
+    // With updateClasses it will use the handler (only necessary on mobile).
+    // @see registerBreakpointConfig()
+    // @see setPagination()
+    if (this.swiper.params.direction === 'vertical') {
+      setTimeout(function () {
+        self.swiper.updateClasses();
+      }, 500);
+    }
   }
-
-  _initializeAllAds() {
-    let self = this;
-    // Without the timeout, the ads won't load, if the gallery is opened via a link
-    // (with a #, which opens the gallery automatically)
-    setTimeout(() => {
-      self.swiperContainer.querySelectorAll('.gallery-ad').forEach((gallery_ad) => {
-        self._initializeAd(gallery_ad);
-      })
-    }, 0);
-  }
-
-  _initializeAd(ad) {
-    // Manually init the ad to show.
-    Gallery.addClass(ad, '.not-initialized', 'ad-entity-container');
-    Drupal.behaviors.adEntityView.attach(ad, drupalSettings);
-
-    // Update swiper object so ads will be recognized.
-    this.swiper.update();
-  }
-
 }
 
 export {Gallery, GalleryFsMobileScroll};

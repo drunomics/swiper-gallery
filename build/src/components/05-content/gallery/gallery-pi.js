@@ -23,11 +23,10 @@ class GalleryPI {
     }
 
     this._lastTrackedHash = window.location.hash;
-    log.info('URL fragment changed to ' + window.location.hash);
 
     // Provide the new page impression to google tag manager.
     if (typeof dataLayer !== 'undefined') {
-      log.info('Google Tag Manager triggered with ' + window.location.href);
+      log.info('GTM triggered.');
       dataLayer.push({
         'event': 'VirtualPageview',
         'virtualPageURL': window.location.href,
@@ -35,7 +34,7 @@ class GalleryPI {
     }
     // Call IVW again.
     if ((typeof window.iom !== 'undefined') && (typeof window.iom.c === 'function')) {
-      log.info('IVW triggered');
+      log.info('IVW triggered.');
       iom.c(iam_data, 1);
     }
   }
