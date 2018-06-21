@@ -3,7 +3,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
 
-  @include breakpoint($bp--tablet) {
+  &.swiper-gallery-mobile {
     flex-wrap: nowrap;
   }
 
@@ -17,17 +17,20 @@
       margin-top: 8px;
     }
 
-    @include breakpoint($bp--tablet) {
+    img {
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  &.swiper-gallery-mobile {
+    &__show-all,
+    &__thumb {
       width: 24%;
       &:nth-of-type(4n+3),
       &:nth-of-type(4n+4) {
         margin-top: 0;
       }
-    }
-
-    img {
-      width: 100%;
-      height: auto;
     }
   }
 

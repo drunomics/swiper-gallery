@@ -22,6 +22,7 @@ function swiper_gallery_theme($existing, $type, $theme, $path) {
         'preview' => '',
         'slides' => [],
         'thumbnails' => [],
+        'viewmode' => 'default',
       ],
     ],
     // Headline above the gallery.
