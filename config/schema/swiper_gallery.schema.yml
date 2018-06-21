@@ -29,3 +29,6 @@ field.formatter.settings.swiper_gallery:
     hash_nav_replace_state:
       type: boolean
       label: 'Hash Navigation: replace url state'
+    mobile_breakpoint:
+      type: integer
+      label: 'Make swiper slide vertical & remove thumbnails at this breakpoint'

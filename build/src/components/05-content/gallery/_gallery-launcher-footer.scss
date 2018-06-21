@@ -15,8 +15,10 @@
     font-size: 100%;
     margin: rem(8);
     text-transform: uppercase;
+  }
 
-    @include breakpoint($bp--tablet) {
+  &.swiper-gallery-mobile {
+    &__text {
       font-size: rem(12);
     }
   }
