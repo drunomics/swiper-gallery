@@ -3,6 +3,7 @@
 namespace Drupal\swiper_gallery\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Cache\CacheableMetadata;
+use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -34,6 +35,13 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   protected $entityTypeManager;
 
   /**
+   * Entity display repository.
+   *
+   * @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface
+   */
+  protected $entityDisplayRepository;
+
+  /**
    * Media view builder.
    *
    * @var \Drupal\Core\Entity\EntityViewBuilderInterface
@@ -57,11 +65,23 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   /**
    * {@inheritdoc}
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, $label, $view_mode, array $third_party_settings, ModuleHandlerInterface $module_handler, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(
+    $plugin_id,
+    $plugin_definition,
+    FieldDefinitionInterface $field_definition,
+    array $settings,
+    $label,
+    $view_mode,
+    array $third_party_settings,
+    ModuleHandlerInterface $module_handler,
+    EntityTypeManagerInterface $entity_type_manager,
+    EntityDisplayRepositoryInterface $entity_display_repository
+  ) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
     $this->moduleHandler = $module_handler;
     $this->entityTypeManager = $entity_type_manager;
     $this->viewBuilder = $this->entityTypeManager->getViewBuilder('media');
+    $this->entityDisplayRepository = $entity_display_repository;
   }
 
   /**
@@ -77,7 +97,8 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       $configuration['view_mode'],
       $configuration['third_party_settings'],
       $container->get('module_handler'),
-      $container->get('entity_type.manager')
+      $container->get('entity_type.manager'),
+      $container->get('entity_display.repository')
     );
   }
 
@@ -100,8 +121,8 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       'preview_footer' => 'imageonly',
       'image_style_preview_image' => 'swiper_gallery_preview',
       'image_style_preview_thumbnail' => 'swiper_gallery_preview_thumbnail',
-      'image_style_gallery_slide' => 'swiper_gallery_slide',
       'image_style_gallery_thumbnail' => 'swiper_gallery_thumbnail',
+      'view_mode_gallery_slide' => 'gallery',
       'hash_nav_replace_state' => FALSE,
     ] + parent::defaultSettings();
   }
@@ -145,10 +166,16 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#default_value' => $this->getSetting('launcher_footer_text'),
     ];
 
+    $form['view_mode_gallery_slide'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Image viewmode: Gallery slide'),
+      '#default_value' => $this->getSetting('view_mode_gallery_slide'),
+      '#options' => $this->entityDisplayRepository->getViewModeOptionsByBundle('media', 'image'),
+    ];
+
     $image_styles = [
       'image_style_preview_image',
       'image_style_preview_thumbnail',
-      'image_style_gallery_slide',
       'image_style_gallery_thumbnail',
     ];
 
@@ -156,7 +183,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       list(, , $area, $type) = explode('_', $image_style);
       $form[$image_style] = [
         '#type' => 'select',
-        '#title' => $this->t('Image style: %area %type', ['%area' => ucfirst($area), '%type' => ucfirst($type)]),
+        '#title' => $this->t('Image style: @area @type', ['@area' => ucfirst($area), '@type' => $type]),
         '#default_value' => $this->getSetting($image_style),
         '#options' => image_style_options(FALSE),
       ];
@@ -195,7 +222,6 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     $preview_headline = $this->buildPreviewHeadline($items->getEntity()->label(), count($entities));
     $thumbnails = $this->buildImages($entities, 'swiper_gallery_thumbnail', $this->getSetting('image_style_gallery_thumbnail'));
     $referring_paragraph = $items->getEntity()->_referringItem->getEntity();
-    $settings_key = 'gallery-' . $referring_paragraph->id() . '-' . $this->gallery->id();
 
     $build = [
       '#theme' => 'swiper_gallery',
@@ -232,7 +258,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    */
   protected function buildSlides(array $entities) {
     $build = [];
-    $view_mode = 'swiper_gallery_slide';
+    $view_mode = $this->getSetting('view_mode_gallery_slide');
 
     foreach ($entities as $entity) {
       $media_build = $this->viewBuilder->view($entity, $view_mode);

@@ -17,12 +17,12 @@ field.formatter.settings.swiper_gallery:
     image_style_preview_image:
       type: text
       label: 'Image style preview'
+    view_mode_gallery_slide:
+      type: text
+      label: 'Image viewmode gallery slide'
     image_style_preview_thumbnail:
       type: text
       label: 'Image style preview thumbnail'
-    image_style_gallery_slide:
-      type: text
-      label: 'Image style gallery slide'
     image_style_gallery_thumbnail:
       type: text
       label: 'Image style gallery thumbnail'
