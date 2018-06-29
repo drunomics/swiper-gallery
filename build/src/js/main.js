@@ -6,7 +6,7 @@ log.disableAll();
 // Enable for debugging.
 // log.enableAll();
 
-import {Gallery, GalleryFsMobileScroll} from '../components/05-content/gallery/gallery';
+import {Gallery, GalleryFsMobileScroll} from '../components/05-gallery/gallery';
 
 window.SwiperGallery = {};
 window.SwiperGallery.gallery = Gallery;

@@ -296,15 +296,6 @@ $gallery--max-width: 1000px;
       }
     }
 
-    .media__image {
-      margin-bottom: 0;
-      height: rem(90);
-    }
-
-    .media-image {
-      height: rem(90);
-    }
-
     .swiper {
       &-slide-active {
         opacity: 1;
@@ -320,10 +311,6 @@ $gallery--max-width: 1000px;
         position: absolute;
         left: 0;
         top: $spacing--block;
-      }
-
-      &-lazy-preloader:after {
-        display: none;
       }
     }
   }
@@ -367,14 +354,6 @@ $gallery--max-width: 1000px;
       background: rgba(255, 255, 255, .8);
       margin-bottom: $spacing--half;
       display: inline-block;
-    }
-  }
-
-  &-lazy-preloader {
-    animation: unset;
-
-    &:after {
-      background-image: url('/swiper_gallery/loading_icon');
     }
   }
 }
