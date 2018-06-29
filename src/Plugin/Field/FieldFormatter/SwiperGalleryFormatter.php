@@ -48,7 +48,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   protected $moduleHandler;
 
   /**
-   * The media gallery
+   * The media gallery.
    *
    * @var \Drupal\media\Entity\Media
    */
@@ -94,16 +94,16 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    */
   public static function defaultSettings() {
     return [
-        'launcher_main_text' => 'Start gallery',
-        'launcher_footer_text' => 'Show all',
-        'show_preview_headline' => FALSE,
-        'preview_footer' => 'imageonly',
-        'image_style_preview_image' => 'swiper_gallery_preview',
-        'image_style_preview_thumbnail' => 'swiper_gallery_preview_thumbnail',
-        'image_style_gallery_slide' => 'swiper_gallery_slide',
-        'image_style_gallery_thumbnail' => 'swiper_gallery_thumbnail',
-        'hash_nav_replace_state' => FALSE,
-      ] + parent::defaultSettings();
+      'launcher_main_text' => 'Start gallery',
+      'launcher_footer_text' => 'Show all',
+      'show_preview_headline' => FALSE,
+      'preview_footer' => 'imageonly',
+      'image_style_preview_image' => 'swiper_gallery_preview',
+      'image_style_preview_thumbnail' => 'swiper_gallery_preview_thumbnail',
+      'image_style_gallery_slide' => 'swiper_gallery_slide',
+      'image_style_gallery_thumbnail' => 'swiper_gallery_thumbnail',
+      'hash_nav_replace_state' => FALSE,
+    ] + parent::defaultSettings();
   }
 
   /**
@@ -153,10 +153,10 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     ];
 
     foreach ($image_styles as $image_style) {
-      list(,,$area, $type) = explode('_', $image_style);
+      list(, , $area, $type) = explode('_', $image_style);
       $form[$image_style] = [
         '#type' => 'select',
-        '#title' => $this->t('Image style: ' . ucfirst($area) . ' ' . ucfirst($type)),
+        '#title' => $this->t('Image style: %area %type', ['%area' => ucfirst($area), '%type' => ucfirst($type)]),
         '#default_value' => $this->getSetting($image_style),
         '#options' => image_style_options(FALSE),
       ];
@@ -204,11 +204,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
           'swiper_gallery/swiper_gallery',
         ],
         'drupalSettings' => [
-          'swiperGallery' => [
-            $settings_key => [
-              'hashNavReplaceState' => (bool) $this->getSetting('hash_nav_replace_state'),
-            ],
-          ],
+          'swiperGallery' => $this->getDrupalSettings($items),
         ],
       ],
       '#slide_id_prefix' => $this->getSlideIdPrefix(),
@@ -219,6 +215,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#thumbnails' => $thumbnails,
       '#gallery_id' => $this->gallery->id(),
       '#paragraph_id' => $referring_paragraph->id(),
+      '#viewmode' => $this->viewMode,
     ];
 
     CacheableMetadata::createFromObject($items->getEntity())->applyTo($build);
@@ -306,7 +303,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#title' => $title,
       '#counter' => [
         '#type' => 'markup',
-        '#markup' => $count . ' ' . ($count > 1 ? t('Images') : t('Image')),
+        '#markup' => $count . ' ' . ($count > 1 ? $this->t('Images') : $this->t('Image')),
       ],
     ];
   }
@@ -319,7 +316,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    *
    * @return array
    */
-  protected function buildPreview($media) {
+  protected function buildPreview(array $media) {
     $build = $this->buildImages([$media[0]], 'swiper_gallery_preview', $this->getSetting('image_style_preview_image'));
     $build = reset($build);
     $build['#launcher_main_text'] = $this->getSetting('launcher_main_text');
@@ -343,12 +340,29 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   }
 
   /**
+   * Generate drupal settings which will be passed to the js.
+   *
+   * @return array
+   */
+  protected function getDrupalSettings() {
+    $settings_key = "gallery-{$this->viewMode}-{$this->gallery->id()}";
+
+    $settings = [
+      $settings_key => [
+        'hashNavReplaceState' => (bool) $this->getSetting('hash_nav_replace_state'),
+      ],
+    ];
+
+    return $settings;
+  }
+
+  /**
    * Gets the slide prefix.
    *
    * @return string
    */
   protected function getSlideIdPrefix() {
-    return 'slide-'. $this->gallery->id() . '-';
+    return 'slide-' . $this->gallery->id() . '-';
   }
 
 }

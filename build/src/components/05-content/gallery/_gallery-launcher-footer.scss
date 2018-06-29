@@ -16,7 +16,7 @@
     margin: rem(8);
     text-transform: uppercase;
 
-    @include breakpoint($bp--tablet) {
+    @include breakpoint($bp--mobile) {
       font-size: rem(12);
     }
   }

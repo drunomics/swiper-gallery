@@ -5,13 +5,11 @@ import log from 'loglevel';
 import { debounce } from 'underscore';
 import GalleryPI from './gallery-pi';
 import GalleryAds from './gallery-ads';
-import { SwiperGalleryBreakpoints } from '../../00-base/02-breakpoints/breakpoints'
-
-let breakpoints = new SwiperGalleryBreakpoints();
 
 // Limit smaller than 200 can trigger flickering behavior when resizing the
 // gallery.
 let debounce_limit = 200;
+let mobile_breakpoint = 534;
 
 /**
  * An instance of a gallery.
@@ -126,7 +124,7 @@ class Gallery {
       // gallery is not yet ready.
       setTimeout(() => {
         this.swiper.slideTo(this.activeSlide);
-        if (!breakpoints.isMobile()) {
+        if (!this.isMobile()) {
           this.swiperThumb.slideTo(this.activeSlide);
         }
       }, 500);
@@ -136,7 +134,15 @@ class Gallery {
     }
 
     this.elapsed = start;
-    this.originBefore = origin;
+  }
+
+  /**
+   * Mobile break.
+   *
+   * @returns {boolean}
+   */
+  isMobile() {
+    return window.innerWidth < mobile_breakpoint;
   }
 
   /**
@@ -323,7 +329,7 @@ class Gallery {
         })
       }
 
-      if (breakpoints.isMobile()) {
+      if (this.isMobile()) {
         image.style.height = 'auto';
         image.parentElement.removeAttribute('style');
 
@@ -351,7 +357,7 @@ class Gallery {
    * Set height of Swiper Container.
    */
   setContainerHeight() {
-    if (breakpoints.isMobile()) {
+    if (this.isMobile()) {
       this.swiperContainer.style.setProperty('height', document.querySelector('.featherlight').clientHeight + 'px');
     }
   }
@@ -677,7 +683,7 @@ class Gallery {
     this.swiper = new Swiper(this.swiperContainer, this.config);
     log.info(this.swiper);
 
-    this.adHandler.init(this.swiper, breakpoints.isMobile());
+    this.adHandler.init(this.swiper, this.isMobile());
     // Ensure the hash of the first slide is written once enabled in
     // fullscreen.
     this.swiper.hashnav.setHash();

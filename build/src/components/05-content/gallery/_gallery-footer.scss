@@ -3,7 +3,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
 
-  @include breakpoint($bp--tablet) {
+  @include breakpoint($bp--mobile) {
     flex-wrap: nowrap;
   }
 
@@ -17,7 +17,7 @@
       margin-top: 8px;
     }
 
-    @include breakpoint($bp--tablet) {
+    @include breakpoint($bp--mobile) {
       width: 24%;
       &:nth-of-type(4n+3),
       &:nth-of-type(4n+4) {
