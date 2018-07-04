@@ -378,6 +378,10 @@ $gallery--max-width: 1000px;
         margin-left: -$spacing--half/2;
         width: 1px;
       }
+
+      .media-image {
+        text-align: center;
+      }
     }
 
     .media__image {
