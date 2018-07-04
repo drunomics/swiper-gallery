@@ -4,5 +4,7 @@
 {% set attributes = attributes|default(create_attribute()).addClass(classes) %}
 
 <div{{ attributes }} data-hash='{{ slide_id_prefix ~ id }}'>
-    {{ image }}
+    <article class="media media-image">
+        <section>{{ image }}</section>
+    </article>
 </div>
