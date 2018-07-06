@@ -358,37 +358,6 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    *
    * @return array
    */
-  protected function _buildPreview(array $media) {
-    $build = $this->buildImages([$media[0]], 'swiper_gallery_preview', $this->getSetting('image_style_preview_image'));
-    $build = reset($build);
-    $build['#launcher_main_text'] = $this->getSetting('launcher_main_text');
-    $build['#launcher_footer_text'] = $this->getSetting('launcher_footer_text');
-    $build['#image_count'] = count($media);
-
-    $footer = $this->getSetting('preview_footer');
-    $build['#show_description'] = $footer == 'description';
-
-    if ($footer == 'thumbs' && count($media) >= 4) {
-      foreach (array_slice($media, 1, 3) as $thumb) {
-        $build['#footer_thumbs'][] = [
-          '#theme' => 'image_style',
-          '#style_name' => $this->getSetting('image_style_preview_thumbnail'),
-          '#uri' => $thumb->field_image->entity->uri->value,
-        ];
-      }
-    }
-
-    return $build;
-  }
-
-  /**
-   * Builds the preview image with the launcher.
-   *
-   * @param \Drupal\media_entity\Entity\Media[] $media
-   *   The media containing the image.
-   *
-   * @return array
-   */
   protected function buildPreview(array $media) {
     $image_count = count($media);
     $first_image = $media[0];
