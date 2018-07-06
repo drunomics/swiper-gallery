@@ -118,11 +118,12 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       'launcher_main_text' => 'Start gallery',
       'launcher_footer_text' => 'Show all',
       'show_preview_headline' => FALSE,
-      'preview_footer' => 'imageonly',
+      'preview_type' => 'thumbs',
       'image_style_preview_image' => 'swiper_gallery_preview',
       'image_style_preview_thumbnail' => 'swiper_gallery_preview_thumbnail',
       'image_style_gallery_thumbnail' => 'swiper_gallery_thumbnail',
-      'view_mode_gallery_slide' => 'gallery',
+      'view_mode_gallery_preview' => 'default',
+      'view_mode_gallery_slide' => 'default',
       'hash_nav_replace_state' => FALSE,
     ] + parent::defaultSettings();
   }
@@ -147,23 +148,46 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#default_value' => $this->getSetting('show_preview_headline'),
     ];
 
-    $form['preview_footer'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Preview footer'),
-      '#description' => $this->t('Select the footer on the launcher.'),
-      '#default_value' => $this->getSetting('preview_footer'),
-      '#options' => [
-        'imageonly' => $this->t('Image only'),
-        'description' => $this->t('Description & Social icons'),
-        'thumbs' => $this->t('First 3 thumbnails'),
-      ],
-    ];
-
     $form['launcher_footer_text'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Show all text'),
       '#description' => $this->t('The `Show all`-text when thumbnails are selected in the preview footer.'),
       '#default_value' => $this->getSetting('launcher_footer_text'),
+    ];
+
+    $form['preview_type'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Preview type'),
+      '#description' => $this->t('Select the preview type.'),
+      '#default_value' => $this->getSetting('preview_type'),
+      '#options' => [
+        'media' => $this->t('Media viewmode (can be choseon below)'),
+        'thumbs' => $this->t('Thumbnails (Preview image & first 3 thumbnails)'),
+      ],
+    ];
+
+    $form['view_mode_gallery_preview'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Image viewmode: Gallery preview'),
+      '#description' => $this->t('Used if media viewmode is selected in the preview type, as well as a fallback if the gallery consists of less than 4 images.'),
+      '#default_value' => $this->getSetting('view_mode_gallery_preview'),
+      '#options' => $this->entityDisplayRepository->getViewModeOptionsByBundle('media', 'image'),
+    ];
+
+    $form['image_style_preview_image'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Image style: Preview image'),
+      '#description' => $this->t('Image style for the main teaser image in the preview.'),
+      '#default_value' => $this->getSetting('image_style_preview_image'),
+      '#options' => image_style_options(FALSE),
+    ];
+
+    $form['image_style_preview_thumbnail'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Image style: Preview thumbnails'),
+      '#description' => $this->t('Image style for the thumbnails in the preview.'),
+      '#default_value' => $this->getSetting('image_style_preview_thumbnail'),
+      '#options' => image_style_options(FALSE),
     ];
 
     $form['view_mode_gallery_slide'] = [
@@ -173,21 +197,13 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#options' => $this->entityDisplayRepository->getViewModeOptionsByBundle('media', 'image'),
     ];
 
-    $image_styles = [
-      'image_style_preview_image',
-      'image_style_preview_thumbnail',
-      'image_style_gallery_thumbnail',
+    $form['image_style_gallery_thumbnail'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Image style: Gallery thumbnails'),
+      '#description' => $this->t('Image style for the thumbnails in the gallery.'),
+      '#default_value' => $this->getSetting('image_style_gallery_thumbnail'),
+      '#options' => image_style_options(FALSE),
     ];
-
-    foreach ($image_styles as $image_style) {
-      list(, , $area, $type) = explode('_', $image_style);
-      $form[$image_style] = [
-        '#type' => 'select',
-        '#title' => $this->t('Image style: @area @type', ['@area' => ucfirst($area), '@type' => $type]),
-        '#default_value' => $this->getSetting($image_style),
-        '#options' => image_style_options(FALSE),
-      ];
-    }
 
     $form['hash_nav_replace_state'] = [
       '#type' => 'checkbox',
@@ -342,7 +358,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    *
    * @return array
    */
-  protected function buildPreview(array $media) {
+  protected function _buildPreview(array $media) {
     $build = $this->buildImages([$media[0]], 'swiper_gallery_preview', $this->getSetting('image_style_preview_image'));
     $build = reset($build);
     $build['#launcher_main_text'] = $this->getSetting('launcher_main_text');
@@ -353,6 +369,48 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     $build['#show_description'] = $footer == 'description';
 
     if ($footer == 'thumbs' && count($media) >= 4) {
+      foreach (array_slice($media, 1, 3) as $thumb) {
+        $build['#footer_thumbs'][] = [
+          '#theme' => 'image_style',
+          '#style_name' => $this->getSetting('image_style_preview_thumbnail'),
+          '#uri' => $thumb->field_image->entity->uri->value,
+        ];
+      }
+    }
+
+    return $build;
+  }
+
+  /**
+   * Builds the preview image with the launcher.
+   *
+   * @param \Drupal\media_entity\Entity\Media[] $media
+   *   The media containing the image.
+   *
+   * @return array
+   */
+  protected function buildPreview(array $media) {
+    $image_count = count($media);
+    $first_image = $media[0];
+    $preview_type = $this->getSetting('preview_type');
+    if ($preview_type == 'thumbs' && $image_count < 4) {
+      $preview_type = 'media';
+    }
+
+    $build = [
+      '#theme' => 'swiper_gallery_preview',
+      '#launcher_main_text' => $this->getSetting('launcher_main_text'),
+      '#launcher_footer_text' => $this->getSetting('launcher_footer_text'),
+      '#image_count' => count($media),
+      '#media' => $this->viewBuilder->view($first_image, $this->getSetting('view_mode_gallery_preview')),
+      '#preview_type' => $preview_type,
+    ];
+
+    if ($preview_type == 'thumbs') {
+      $image_build = $this->viewBuilder->viewField($first_image->field_image, ['label' => 'hidden']);
+      $image_build[0]['#image_style'] = $this->getSetting('image_style_preview_image');
+      $build['#footer_image'] = $image_build;
+
       foreach (array_slice($media, 1, 3) as $thumb) {
         $build['#footer_thumbs'][] = [
           '#theme' => 'image_style',

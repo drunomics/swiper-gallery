@@ -8,24 +8,27 @@ field.formatter.settings.swiper_gallery:
     show_preview_headline:
       type: boolean
       label: 'Show preview headline'
-    preview_footer:
+    preview_type:
       type: text
-      label: 'Preview footer'
+      label: 'Preview type'
     launcher_footer_text:
       type: text
       label: 'Launcher footer text'
     image_style_preview_image:
       type: text
       label: 'Image style preview'
-    view_mode_gallery_slide:
-      type: text
-      label: 'Image viewmode gallery slide'
     image_style_preview_thumbnail:
       type: text
       label: 'Image style preview thumbnail'
     image_style_gallery_thumbnail:
       type: text
       label: 'Image style gallery thumbnail'
+    view_mode_gallery_slide:
+      type: text
+      label: 'Image viewmode gallery slide'
+    view_mode_gallery_preview:
+      type: text
+      label: 'Image viewmode gallery preview'
     hash_nav_replace_state:
       type: boolean
       label: 'Hash Navigation: replace url state'

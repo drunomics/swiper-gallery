@@ -1,43 +1,30 @@
-{% set copyright_value = copyright|render|striptags|trim %}
-{% if variant %}
-    {% set variant = ' media__image-' ~ variant %}
-{% endif %}
-{% set classes = ['media__image']|merge([variant]) %}
-{% set attributes = []|default(create_attribute()).addClass(classes) %}
+{% if preview_type == 'thumbs' and footer_thumbs is not empty %}
+    <article class="media media-image">
+        <section>{{ footer_image }}</section>
+    </article>
 
-<article class="media media-image">
-    <section{{ attributes }}>{{ image }}
-        <div class='gallery-launcher gallery-launcher-main'>
-            <div class='gallery-launcher-main__wrapper'>
-                <div class="gallery-launcher-main__text">{{ launcher_main_text }}</div>
+    <section class="gallery-footer">
+        {% for thumb in footer_thumbs %}
+            <div class="gallery-footer__thumb gallery-launcher">{{ thumb }}</div>
+        {% endfor %}
+        <div class="gallery-footer__show-all gallery-footer__thumb">
+            <div class='gallery-launcher gallery-launcher-footer'>
+                <div class='gallery-launcher-footer__wrapper'>
+                    <div class="gallery-launcher-footer__counter">
+                        <span class="gallery-launcher-footer__icon"></span>
+                        {{ image_count }}
+                    </div>
+                    <div class="gallery-launcher-footer__text">{{ launcher_footer_text }}</div>
+                </div>
             </div>
         </div>
     </section>
+{% else %}
+    {{ media }}
+{% endif %}
 
-    {% if show_description %}
-        <section class="media__share-links social-share-links social-share-links--slim">
-            {% block share_links %}{% endblock %}
-        </section>
-        <section class="media__description-copyright">
-            <div class="media__description">{{ description }}</div>
-            {% if copyright_value is not empty %}<div class="media__copyright">&copy; {{ copyright_value }}</div>{% endif %}
-        </section>
-    {% elseif footer_thumbs is not empty %}
-        <section class="gallery-footer">
-            {% for thumb in footer_thumbs %}
-                <div class="gallery-footer__thumb gallery-launcher">{{ thumb }}</div>
-            {% endfor %}
-            <div class="gallery-footer__show-all gallery-footer__thumb">
-                <div class='gallery-launcher gallery-launcher-footer'>
-                    <div class='gallery-launcher-footer__wrapper'>
-                        <div class="gallery-launcher-footer__counter">
-                            <span class="gallery-launcher-footer__icon"></span>
-                            {{ image_count }}
-                        </div>
-                        <div class="gallery-launcher-footer__text">{{ launcher_footer_text }}</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    {% endif %}
-</article>
+<div class='gallery-launcher gallery-launcher-main'>
+    <div class='gallery-launcher-main__wrapper'>
+        <div class="gallery-launcher-main__text">{{ launcher_main_text }}</div>
+    </div>
+</div>

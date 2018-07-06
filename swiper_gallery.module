@@ -35,14 +35,13 @@ function swiper_gallery_theme($existing, $type, $theme, $path) {
     // Preview image with the launcher button.
     'swiper_gallery_preview' => [
       'variables' => [
-        'image' => '',
-        'description' => '',
-        'copyright' => '',
+        'preview_type' => 'thumbs',
         'launcher_main_text' => '',
         'launcher_footer_text' => '',
-        'show_description' => FALSE,
+        'footer_image' => NULL,
         'footer_thumbs' => [],
         'image_count' => 0,
+        'media' => NULL,
       ],
     ],
     // A single slide inside the gallery.
