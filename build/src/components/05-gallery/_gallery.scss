@@ -76,15 +76,11 @@ $gallery--max-width: 1000px;
     }
   }
 
-  &-ad {
+  &-breaker {
     @include breakpoint($bp--mobile) {
       position: relative;
       top: 50%;
       transform: translateY(-50%);
-    }
-
-    .ad-entity__container {
-      display: inline-block;
     }
   }
 
@@ -288,12 +284,12 @@ $gallery--max-width: 1000px;
       &:last-of-type {
         margin-right: 0;
       }
+    }
 
-      &--ad {
-        margin-right: $spacing--half/2;
-        margin-left: -$spacing--half/2;
-        width: 1px;
-      }
+    .gallery-breaker {
+      margin-right: $spacing--half/2;
+      margin-left: -$spacing--half/2;
+      width: 1px;
     }
 
     .media__image {

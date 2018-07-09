@@ -1,0 +1,6 @@
+{% set classes = classes|default([])|merge(['gallery-slide swiper-slide swiper-slide-breaker swiper-slide-' ~ variant]) %}
+{% set attributes = attributes|default(create_attribute()).addClass(classes) %}
+
+<div{{ attributes }} data-hash="slide-breaker-{{ id }}">
+    <div class="gallery-breaker">{{ breaker }}</div>
+</div>

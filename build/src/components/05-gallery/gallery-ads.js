@@ -15,8 +15,6 @@ class GalleryAds {
    *   Mobile version flag.
    */
   init(swiper, isMobile) {
-    log.info('GalleryAds init swiper');
-
     if (typeof(Drupal.ad_entity) === "undefined") {
       log.info('Ad entity library not found.');
       return;
@@ -26,12 +24,12 @@ class GalleryAds {
     this.isMobile = isMobile;
 
     // In case gallery was duplicated but ads are already initialized.
-    this.updateSwiper();
+    this.swiper.update();
 
     let self = this;
 
     window.addEventListener('resize', debounce(function () {
-      self.updateSwiper();
+      //this.swiper.update();
     }, 100));
 
     // Looping swiper will generate duplicates of slides, in this case we need
@@ -53,7 +51,7 @@ class GalleryAds {
   getAdSlides() {
     let ad_slides = [];
     [].forEach.call(this.swiper.slides, function(slide) {
-      let ad_container = slide.querySelectorAll('.gallery-ad');
+      let ad_container = slide.querySelectorAll('.ad-entity-container');
       if (ad_container.length > 0) {
         ad_slides.push(slide);
       }
@@ -74,7 +72,7 @@ class GalleryAds {
     let index = swiper.activeIndex + offset;
     let slide = swiper.slides[index];
 
-    if (typeof(slide) !== "undefined" && slide.querySelectorAll('.gallery-ad').length > 0) {
+    if (typeof(slide) !== "undefined" && slide.querySelectorAll('.ad-entity-container').length > 0) {
       this.initializeAd(slide);
     }
   }
@@ -114,8 +112,12 @@ class GalleryAds {
     // ads will be created, so we have to remove this class as well.
     ad.classList.remove('initialized');
 
+    // Ad_entity expects a jQuery object, and if enabled will also have
+    // it as adependency.
+    ad = window.jQuery(ad);
+
     Drupal.ad_entity.restrictAndInitialize([ad], document, drupalSettings);
-    this.updateSwiper();
+    this.swiper.update();
   }
 
   /**
@@ -134,23 +136,6 @@ class GalleryAds {
     this.getAdSlides().forEach(function(ad_slide) {
       self.initializeAd(ad_slide);
     });
-  }
-
-  /**
-   * Update swiper, fix heights if necessary.
-   */
-  updateSwiper() {
-    if (!this.isMobile && typeof(this.swiper.slides[0]) !== "undefined") {
-      // Fix heights, set it from height of the first slide.
-      let firstSlide = this.swiper.slides[0];
-      let height = firstSlide.querySelector('.media').getAttribute('height');
-
-      this.getAdSlides().forEach(function (ad_slide) {
-        ad_slide.setAttribute('height', height);
-      });
-    }
-
-    this.swiper.update();
   }
 }
 

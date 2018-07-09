@@ -1,6 +1,5 @@
 import 'swiper/dist/js/swiper.js';
 import 'featherlight/release/featherlight.min';
-import enquire from 'enquire.js';
 import log from 'loglevel';
 import { debounce } from 'underscore';
 import GalleryPI from './gallery-pi';
@@ -12,9 +11,15 @@ let debounce_limit = 200;
 let mobile_breakpoint = 534;
 
 /**
- * An instance of a gallery.
+ * Default gallery.
  */
 class Gallery {
+
+  /**
+   * Gallery type.
+   *
+   * @returns {string}
+   */
   static get type() {
     return 'default';
   }
@@ -90,50 +95,8 @@ class Gallery {
     // Set default config and show it.
     this.config = this.defaultConfig;
     this.thumbConfig = this.defaultThumbConfig;
-    // Check if orientation has changed.
-    this.orientationchange = false;
 
     this.alreadyOpened = false;
-  }
-
-  /**
-   * Update gallery and slides.
-   */
-  updateGallery(origin) {
-    // Judge on the elapsed time between two calls to this function from
-    // 'orientationchange' and/or 'resize' as sometimes they can be fired both
-    // while the screen resolution changes. To prevent a double call of this
-    // function the time between those calls must be larger than 50ms.
-    let start = new Date().getTime();
-
-    if (this.elapsed === undefined) {
-      this.elapsed = 0;
-    }
-
-    if (start - this.elapsed > 50) {
-      this.swiperThumb.destroy(false, true);
-      this.swiper.destroy(false, true);
-      this._createSwiper();
-
-
-      this.swiper.update(true);
-      this.swiper.updateContainerSize();
-      this.swiper.updateSlidesSize();
-
-      // After 500ms slide to the previously active slide, because before the
-      // gallery is not yet ready.
-      setTimeout(() => {
-        this.swiper.slideTo(this.activeSlide);
-        if (!this.isMobile()) {
-          this.swiperThumb.slideTo(this.activeSlide);
-        }
-      }, 500);
-      this.swiper.slideTo(this.activeSlide);
-
-      this.setImageHeight();
-    }
-
-    this.elapsed = start;
   }
 
   /**
@@ -143,6 +106,21 @@ class Gallery {
    */
   isMobile() {
     return window.innerWidth < mobile_breakpoint;
+  }
+
+  /**
+   * Gets slides with a specific type.
+   *
+   * @returns {Array}
+   */
+  getSlidesByType(type) {
+    let slides = [];
+    [].forEach.call(this.swiper.slides, function(slide) {
+      if (slide.classList.contains('swiper-slide-' + type)) {
+        slides.push(slide);
+      }
+    });
+    return slides;
   }
 
   /**
@@ -183,7 +161,7 @@ class Gallery {
    * @param {number} boxImageWidth
    *   Bounding box width.
    */
-  setImageHeightWidth (image, availableImageHeight, boxImageWidth) {
+  fixImageHeightsWidth (image, availableImageHeight, boxImageWidth) {
     let boxImageHeight = availableImageHeight - (parseInt(image.closest('.media-image').offsetHeight, 10) - parseInt(image.offsetHeight, 10));
 
     // Remove possible padding to image.
@@ -241,13 +219,12 @@ class Gallery {
         }
       }
     }
-    this.swiper.update(true);
   }
 
   /**
-   * Sets height of active image in swiper slide.
+   * Fix heights of slides.
    */
-  setImageHeight() {
+  fixSlideHeights() {
     // If the window height is too low to display images correctly set a class
     // which hides thumbs and sets the title to the top (like on mobile).
     let windowheight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -341,38 +318,43 @@ class Gallery {
       else {
         // Remove top padding for first slide.
         imageWrapper.style.setProperty('padding-top', 0);
-
-        // Set height and width of image after 50ms to be sure the resizing of
-        // the window has finished and the possible change of orientation shows
-        // the correct values.
-        setTimeout(() => {
-          this.setImageHeightWidth(image, availableImageHeight, boxImageWidth);
-        }, 50);
+        this.fixImageHeightsWidth(image, availableImageHeight, boxImageWidth);
       }
     }, this);
-    this.swiper.update(true);
+
+    // Must be done after image slides are updated, so that we have the actual
+    // size of the slides.
+    this.fixBreakerSlideHeights();
   }
 
   /**
-   * Set height of Swiper Container.
+   * Fixes height of breaker slides.
    */
-  setContainerHeight() {
+  fixBreakerSlideHeights() {
     if (this.isMobile()) {
-      this.swiperContainer.style.setProperty('height', document.querySelector('.featherlight').clientHeight + 'px');
+      return;
     }
+    const firstSlide = this.content.querySelector('.swiper-wrapper').querySelector('.gallery-slide[data-swiper-slide-index="0"]:not(.swiper-slide-duplicate)');
+    const firstSlideHeight = firstSlide.offsetHeight;
+    this.getSlidesByType('breaker').forEach(function (slide, index) {
+      slide.style.height = firstSlideHeight + 'px';
+    });
   }
 
-  setActiveSlideByHash(hash) {
-    // Get gallery slides.
-    let slides = this.content.querySelectorAll('.swiper-wrapper')[0].querySelectorAll('.gallery-slide');
-    let activeSlide = this.element.querySelectorAll("[data-hash='" + hash + "']")[0];
-    this.activeSlide = [...slides].indexOf(activeSlide);
+  /**
+   * Fix container height for vertical scrolling on mobile.
+   */
+  fixMobileContainerHeight() {
+    if (!this.isMobile()) {
+      return;
+    }
+    this.swiperContainer.style.setProperty('height', document.querySelector('.featherlight').clientHeight + 'px');
   }
 
   /**
    * Initially launches the gallery.
    */
-  launch(hash) {
+  launch() {
     // Push current page to history stack to be able to return to it when
     // back button is clicked.
     if (!this.alreadyOpened) {
@@ -380,41 +362,18 @@ class Gallery {
       this.alreadyOpened = true;
     }
 
-    this.show();
-    this.setImageHeight();
-
-    // If we start the gallery with a has tag we slide to the active slide.
-    if (hash) {
-      this.setActiveSlideByHash(hash);
-    }
+    this.init();
+    this.fixSlideHeights();
+    this.swiper.update(true);
 
     // If browser is resized calculate image and container height (and width).
-    window.addEventListener('resize', debounce(() => {
-      if (this.orientationchange) {
-        this.orientationchange = false;
-      }
-      else {
-        this.setImageHeight();
-        this.setContainerHeight();
-        this.hideAddressBar();
-      }
-    }, debounce_limit));
+    window.addEventListener('resize', debounce(this.onResize.bind(this), debounce_limit));
 
     // If we change orientation we have to create new swiper instance as gallery
     // slide widths are not updates by Swiper in the same way as on a resize
     // event. This problem occurs when the gallery is already in landscape
     // format.
-    window.addEventListener('orientationchange', debounce(() => {
-      this.updateGallery('orientationchange');
-      if (this.orientationchange) {
-        log.info('Change orientation of device to ' + this.orientation);
-        this.orientationchange = false;
-      }
-      else {
-        this.setImageHeight();
-        this.setContainerHeight();
-      }
-    }, debounce_limit));
+    window.addEventListener('orientationchange', debounce(this.onOrientationChange.bind(this), debounce_limit));
 
     this.preventSwipeOnButtons();
 
@@ -555,43 +514,9 @@ class Gallery {
   }
 
   /**
-   * Resets active config to default config.
-   */
-  applyDefaultConfig() {
-    if (!this.active) {
-      // Do nothing if gallery is not active.
-      return;
-    }
-    log.info('Apply default config');
-    this.config = this.defaultConfig;
-    this.orientationchange = true;
-    this.show();
-  }
-
-  /**
-   * Registers breakpoint-specific config.
-   *
-   * @param name
-   *   Some human readable name for debugging purposes.
-   * @param breakpointConfig
-   *   Breakpoint-specific config to apply in addition to the default config.
-   */
-  applyBreakpointConfig(name, breakpointConfig) {
-    if (!this.active) {
-      // Do nothing if gallery is not active.
-      return;
-    }
-    log.info('Apply breakpoint config ' + name);
-    this.config = this.defaultConfig;
-    this.orientationchange = true;
-    Object.assign(this.config, breakpointConfig);
-    this.show();
-  }
-
-  /**
    * Initializes the config dependent on the currently active breakpoints.
    */
-  _initializeConfig() {
+  initSwiperConfig() {
     // Process the config as necessary for swiper.
     if (this.config.prevButton.length) {
       this.config.prevButton = this.swiperContainer.querySelectorAll(this.config.prevButton)[0];
@@ -612,7 +537,7 @@ class Gallery {
    * with that slide and will be closed by clearing the hash.
    * Otherwise the hash will be the ID of the gallery element.
    */
-  show() {
+  init() {
     let self = this;
 
     if (this.active) {
@@ -621,14 +546,14 @@ class Gallery {
       // keep them around but detach them.
       this.swiperThumb.destroy(false, true);
       this.swiper.destroy(false, true);
-      this._createSwiper();
+      this.createSwiperInstance();
     }
     else {
       let hashchange = () => {
         self.handleHashChange()
       };
-        // Make the fullscreen gallery active.
-        window.jQuery.featherlight(self.element, {
+      // Make the fullscreen gallery active.
+      window.jQuery.featherlight(self.element, {
         type: 'html',
         variant: 'gallery-featherlight',
         // We need to wrap it in an anonymous function to avoid featherlight
@@ -637,7 +562,7 @@ class Gallery {
           self.element.classList.remove('is-inactive');
           self.element.classList.add('is-active');
           self.active = true;
-          self._createSwiper();
+          self.createSwiperInstance();
           window.addEventListener('hashchange', hashchange);
         },
         afterClose: function() {
@@ -647,7 +572,6 @@ class Gallery {
 
           // Remove the slide hash from URL.
           history.replaceState(undefined, undefined, window.location.pathname);
-
           window.removeEventListener('hashchange', hashchange);
         }
       });
@@ -677,11 +601,10 @@ class Gallery {
     }
   }
 
-  _createSwiper() {
+  createSwiperInstance() {
     log.info('-- creating swiper instance for: ' + this.type);
-    this._initializeConfig();
+    this.initSwiperConfig();
     this.swiper = new Swiper(this.swiperContainer, this.config);
-    log.info(this.swiper);
 
     this.adHandler.init(this.swiper, this.isMobile());
     // Ensure the hash of the first slide is written once enabled in
@@ -695,6 +618,16 @@ class Gallery {
     this.swiper.params.control = this.swiperThumb;
 
     this.registerGalleryPageImpressionEventHandler();
+
+    // Update swiper gallery on image load
+    // to avoid issues with container height.
+    this.swiper.on('onLazyImageLoad', (swiper) => {
+      swiper.update();
+    })
+
+    this.swiper.on('onLazyImageReady', (swiper) => {
+      swiper.update();
+    })
   }
 
   /**
@@ -707,6 +640,11 @@ class Gallery {
     }
   }
 
+  /**
+   * Gets the hash of the current slide.
+   *
+   * @returns {string|boolean} The hash or false if not found.
+   */
   getSlideHash() {
     if (window.location.hash) {
       let hash = window.location.hash.substring(1);
@@ -731,125 +669,39 @@ class Gallery {
     this.stopPropagation(this.config.prevButton);
     this.stopPropagation(this.config.nextButton);
   }
-}
-
-/**
- * A variant with mobile scrolling.
- */
-class GalleryFsMobileScroll extends Gallery {
-
-  static get type() {
-    return 'fs-mobile-scroll';
-  }
 
   /**
-   * Registers breakpoint-specific config.
-   *
-   * Note that we do do not use the swiper breakpoint config as it does not
-   * support changing all swiper options. Instead we re-init the whole swiper
-   * when necessary.
+   * On resize event handler (already debounced).
    */
-  registerBreakpointConfig() {
-    let self = this;
-    enquire.register('screen and (max-width:533px)', {
-      match: () => {
-        this.applyBreakpointConfig('mobile', {
-          freeMode: true,
-          direction: 'vertical',
-          spaceBetween: 10,
-          autoHeight: true,
-          slidesPerView: 'auto',
-          watchSlidesVisibility: true,
-          centeredSlides: false,
-          hashnav: true,
-          hashnavWatchState: true,
-          loop: false,
-          paginationType: 'custom',
-          // Disable preloading of all images
-          preloadImages: false,
-          // Enable lazy loading
-          lazyLoading: true,
-          paginationCustomRender: function (swiper, current, total) {
-            return self.setPagination(swiper, current, total);
-          }
-        });
-      },
-      unmatch: () => this.applyDefaultConfig(),
-    });
-  }
-
-  /**
-   * Custom pagination handler submitted to the Swiper config.
-   *
-   * This takes unloades slides into account. Without this, Swiper will show
-   * wrong pagination numbers.
-   *
-   * @param {Object} swiper
-   *   Swiper instance.
-   * @param {int} current
-   *   Current slide.
-   * @param {int} total
-   *   Total slides.
-   *
-   * @returns {string}
-   */
-  setPagination(swiper, current, total) {
-    // Get gallery slides.
-    let slides = this.content.querySelectorAll('.swiper-wrapper')[0].querySelectorAll('.gallery-slide');
-    let activeSlide = slides[0].parentElement.querySelector('.swiper-slide-active');
-    let calculated_current = ([...slides].indexOf(activeSlide) + 1);
-    let calculated_total = parseInt(slides.length, 10);
-    return '<span class="swiper-pagination-current">' + calculated_current + '</span> / <span class="swiper-pagination-total">' + calculated_total + '</span>';
-  }
-
-  _createSwiper() {
-    let self = this;
-
-    // We need to set a fixed height on the slider so it can calculate
-    // meaningful measurements.
-    this.setContainerHeight();
-
-    super._createSwiper();
-    this.swiper.update(true);
-
-    // Update swiper gallery on image load
-    // to avoid issues with container height.
-    this.swiper.on('onLazyImageLoad', (swiper) => {
-      swiper.update();
-    })
-
-    this.swiper.on('onLazyImageReady', (swiper) => {
-      swiper.update();
-    })
-
-    this.swiper.on('slideChangeStart', (swiper) => {
-      // Get active gallery slide.
-      let slides = this.content.querySelector('.swiper-wrapper').querySelectorAll('.gallery-slide');
-      let index = 0;
-      [...slides].some((slide) => {
-        let activeSlide = slide.parentElement.querySelector('.swiper-slide-active');
-        if (activeSlide.length !== 0) {
-          index = [...slide.parentElement.children].indexOf(activeSlide);
-          return true;
-        }
-        return false;
-      });
-      this.activeSlide = parseInt(index, 10);
-    });
-
-    // Updates the initial pagination which is showing negative numbers.
-    // The initial pagination is not showing data from the custom pagination
-    // handler, eg. for 1/11 it will show 12/-11, which must be a calculation
-    // error inside of swiper.
-    // With updateClasses it will use the handler (only necessary on mobile).
-    // @see registerBreakpointConfig()
-    // @see setPagination()
-    if (this.swiper.params.direction === 'vertical') {
-      setTimeout(function () {
-        self.swiper.updateClasses();
-      }, 500);
+  onResize() {
+    if (!this.active) {
+      return;
     }
+
+    this.fixSlideHeights();
+    this.fixMobileContainerHeight();
+    this.hideAddressBar();
+
+    this.swiper.update(true);
+    this.swiper.updateContainerSize();
+    this.swiper.updateSlidesSize();
   }
+
+  /**
+   * On orientation change event handler (already debounced).
+   */
+  onOrientationChange() {
+    if (!this.active) {
+      return;
+    }
+
+    this.init();
+
+    this.swiper.update(true);
+    this.swiper.updateContainerSize();
+    this.swiper.updateSlidesSize();
+  }
+
 }
 
-export {Gallery, GalleryFsMobileScroll};
+export default Gallery;

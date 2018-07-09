@@ -2,6 +2,9 @@
 
 namespace Drupal\swiper_gallery\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Block\BlockManagerInterface;
+use Drupal\Core\Block\BlockPluginInterface;
+use Drupal\Core\Block\Plugin\Block\Broken;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -11,6 +14,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\Plugin\Field\FieldFormatter\EntityReferenceFormatterBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Plugin\Context\ContextRepositoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -56,6 +60,20 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   protected $moduleHandler;
 
   /**
+   * Block manager.
+   *
+   * @var \Drupal\Core\Block\BlockManagerInterface
+   */
+  protected $blockManager;
+
+  /**
+   * Context repository.
+   *
+   * @var \Drupal\Core\Plugin\Context\ContextRepositoryInterface
+   */
+  protected $contextRepository;
+
+  /**
    * The media gallery.
    *
    * @var \Drupal\media\Entity\Media
@@ -75,13 +93,17 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     array $third_party_settings,
     ModuleHandlerInterface $module_handler,
     EntityTypeManagerInterface $entity_type_manager,
-    EntityDisplayRepositoryInterface $entity_display_repository
+    EntityDisplayRepositoryInterface $entity_display_repository,
+    BlockManagerInterface $block_manager,
+    ContextRepositoryInterface $context_repository
   ) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
     $this->moduleHandler = $module_handler;
     $this->entityTypeManager = $entity_type_manager;
     $this->viewBuilder = $this->entityTypeManager->getViewBuilder('media');
     $this->entityDisplayRepository = $entity_display_repository;
+    $this->blockManager = $block_manager;
+    $this->contextRepository = $context_repository;
   }
 
   /**
@@ -98,7 +120,9 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       $configuration['third_party_settings'],
       $container->get('module_handler'),
       $container->get('entity_type.manager'),
-      $container->get('entity_display.repository')
+      $container->get('entity_display.repository'),
+      $container->get('plugin.manager.block'),
+      $container->get('context.repository')
     );
   }
 
@@ -125,6 +149,8 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       'view_mode_gallery_preview' => 'default',
       'view_mode_gallery_slide' => 'default',
       'hash_nav_replace_state' => FALSE,
+      'breaker_block' => NULL,
+      'breaker_position' => 6,
     ] + parent::defaultSettings();
   }
 
@@ -212,6 +238,31 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#default_value' => $this->getSetting('hash_nav_replace_state'),
     ];
 
+    $definitions = $this->blockManager->getDefinitionsForContexts($this->contextRepository->getAvailableContexts());
+    $breaker_options = [];
+
+    foreach ($definitions as $key => $definition) {
+      $breaker_options[$key] = $definition['category'] . ' - ' . $definition['admin_label'];
+    }
+
+    $form['breaker_block'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Breaker block'),
+      '#description' => $this->t('Select a custom block which will be placed in between slides, e.g.: a breaker or ad entity.'),
+      '#default_value' => $this->getSetting('breaker_block'),
+      '#empty_value' => '',
+      '#options' => $breaker_options,
+    ];
+
+    $form['breaker_position'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Breaker position'),
+      '#description' => $this->t('Show the breaker block after every X slides.'),
+      '#default_value' => $this->getSetting('breaker_position'),
+      '#min' => 1,
+      '#step' => 1,
+    ];
+
     return $form;
   }
 
@@ -239,6 +290,9 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     $thumbnails = $this->buildImages($entities, 'swiper_gallery_thumbnail', $this->getSetting('image_style_gallery_thumbnail'));
     $referring_paragraph = $items->getEntity()->_referringItem->getEntity();
 
+    /** @var \Drupal\Core\Block\BlockPluginInterface $breaker_block */
+    $breaker_block = $this->blockManager->createInstance($this->getSetting('breaker_block'));
+
     $build = [
       '#theme' => 'swiper_gallery',
       '#attached' => [
@@ -253,8 +307,8 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#title' => $items->getEntity()->label(),
       '#preview_headline' => $preview_headline,
       '#preview' => $preview,
-      '#slides' => $slides,
-      '#thumbnails' => $thumbnails,
+      '#slides' => $this->insertBreaker($slides, $breaker_block),
+      '#thumbnails' => $this->insertBreaker($thumbnails, $breaker_block, TRUE),
       '#gallery_id' => $this->gallery->id(),
       '#paragraph_id' => $referring_paragraph->id(),
       '#viewmode' => $this->viewMode,
@@ -289,6 +343,49 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     }
 
     return $build;
+  }
+
+  /**
+   * Insert a breaker into the build array.
+   *
+   * @param array $build
+   *   The build list, where the breaker will be inserted.
+   * @param \Drupal\Core\Block\BlockPluginInterface $breaker
+   *   The breaker block.
+   * @param bool $is_thumbnails
+   *   If it is the thumbnail only an empty thumbnail will be inserted.
+   *   This is needed to keep the slides in sync with the thumbnails.
+   *
+   * @return array
+   *   The build array containing the breakers.
+   */
+  protected function insertBreaker(array $build, BlockPluginInterface $breaker, $is_thumbnails = FALSE) {
+    $breaker_position = $this->getSetting('breaker_position') - 1;
+    if ($breaker instanceof Broken || $breaker_position > count($build)) {
+      return $build;
+    }
+
+    $items = [];
+    $i = 0;
+    $break_id = 0;
+    // For thumbnails, an empty slide is added to keep it in sync with the
+    // number of slides for swiper to work properly.
+    $breaker_build = $is_thumbnails ? '' : $breaker->build();
+
+    foreach ($build as $build_item) {
+      $i++;
+      $items[] = $build_item;
+      if ($i % $breaker_position == 0) {
+        $items[] = [
+          '#theme' => 'swiper_gallery_breaker',
+          '#id' => $break_id++,
+          '#breaker' => $breaker_build,
+          '#variant' => $is_thumbnails ? 'imageonly' : 'gallery',
+        ];
+      }
+    }
+
+    return $items;
   }
 
   /**

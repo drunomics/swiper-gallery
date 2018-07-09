@@ -32,3 +32,9 @@ field.formatter.settings.swiper_gallery:
     hash_nav_replace_state:
       type: boolean
       label: 'Hash Navigation: replace url state'
+    breaker_block:
+      type: string
+      label: 'Breaker block id'
+    breaker_position:
+      type: string
+      label: 'Breaker position'

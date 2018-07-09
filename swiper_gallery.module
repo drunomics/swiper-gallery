@@ -25,6 +25,14 @@ function swiper_gallery_theme($existing, $type, $theme, $path) {
         'viewmode' => 'default',
       ],
     ],
+    // Breaker slide.
+    'swiper_gallery_breaker' => [
+      'variables' => [
+        'id' => '',
+        'breaker' => NULL,
+        'variant' => '',
+      ],
+    ],
     // Headline above the gallery.
     'swiper_gallery_headline' => [
       'variables' => [
