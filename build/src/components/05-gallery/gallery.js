@@ -1,4 +1,4 @@
-import 'swiper/dist/js/swiper.js';
+import Swiper from 'swiper/dist/js/swiper.js';
 import 'featherlight/release/featherlight.min';
 import log from 'loglevel';
 import { debounce } from 'underscore';
@@ -25,6 +25,64 @@ class Gallery {
   }
 
   /**
+   * Swiper config for the main swiper instance.
+   *
+   * @return {Object}
+   */
+  get defaultConfig() {
+    let loopedSlides = this.content.querySelectorAll('.swiper-wrapper .swiper-slide:not(.swiper-slide-duplicate)').length;
+
+    return {
+      speed: 400,
+      navigation: {
+        nextEl: '.gallery__button-next',
+        prevEl: '.gallery__button-prev',
+      },
+      grabCursor: true,
+      hashNavigation: {
+        watchState: true,
+        replaceState: !!this.settings.hashNavReplaceState,
+      },
+      keyboard: true,
+      pagination: {
+        el: '.gallery__pagination',
+        type: 'fraction',
+      },
+      centeredSlides: true,
+      // Disable preloading of all images.
+      preloadImages: false,
+      // Enable lazy loading.
+      lazy: {
+        loadPrevNext: true,
+      },
+      loop: true,
+      loopedSlides: loopedSlides,
+      watchSlidesVisibility: true,
+      updateOnImagesReady: true,
+    };
+  }
+
+  /**
+   * Swiper config for the thumbnail swiper instance.
+   *
+   * @return {Object}
+   */
+  get defaultThumbConfig() {
+    let loopedSlides = this.thumbContent.querySelectorAll('.swiper-wrapper .swiper-slide:not(.swiper-slide-duplicate)').length;
+
+    return {
+      loop: true,
+      slidesPerView: 'auto',
+      loopedSlides: loopedSlides,
+      spaceBetween: 10,
+      centeredSlides: true,
+      touchRatio: 0.2,
+      slideToClickedSlide: true,
+      watchSlidesVisibility: true,
+    };
+  }
+
+  /**
    * Attaches the class to the elements of the given selector.
    *
    * The class will only be attached if the data-gallery-type matches the
@@ -47,28 +105,17 @@ class Gallery {
       element.gallery = new self(element, instance_settings);
       element.querySelectorAll('.gallery-launcher').forEach((e) => {
         if (e.classList.contains('gallery-launcher-main')) {
-          element.gallery.showSlideIfGiven();
+          // Launch if a slide hash is available in the url.
+          if (element.gallery.getSlideHash()) {
+            element.gallery.launch();
+          }
         }
         e.addEventListener('click', () => {
           // Ensure there is a new, clean gallery instance on every click.
           element.gallery = new self(element, instance_settings);
-          element.gallery.launch('');
+          element.gallery.launch();
         })
       });
-    })
-  }
-
-  /**
-   * Adds class to all elements matching the selector.
-   *
-   * @param {Node} scope
-   * @param {string} querySelector
-   * @param {string} className
-   * @private
-   */
-  static addClass(scope, querySelector, className) {
-    scope.querySelectorAll(querySelector).forEach((element) => {
-      element.classList.add(className)
     })
   }
 
@@ -97,30 +144,6 @@ class Gallery {
     this.thumbConfig = this.defaultThumbConfig;
 
     this.alreadyOpened = false;
-  }
-
-  /**
-   * Mobile break.
-   *
-   * @returns {boolean}
-   */
-  isMobile() {
-    return window.innerWidth < mobile_breakpoint;
-  }
-
-  /**
-   * Gets slides with a specific type.
-   *
-   * @returns {Array}
-   */
-  getSlidesByType(type) {
-    let slides = [];
-    [].forEach.call(this.swiper.slides, function(slide) {
-      if (slide.classList.contains('swiper-slide-' + type)) {
-        slides.push(slide);
-      }
-    });
-    return slides;
   }
 
   /**
@@ -344,11 +367,12 @@ class Gallery {
   /**
    * Fix container height for vertical scrolling on mobile.
    */
-  fixMobileContainerHeight() {
+  fixVerticalContainerHeight() {
     if (!this.isMobile()) {
       return;
     }
-    this.swiperContainer.style.setProperty('height', document.querySelector('.featherlight').clientHeight + 'px');
+    const featherlightHeight = document.querySelector('.featherlight').clientHeight;
+    this.swiperContainer.style.setProperty('height', featherlightHeight + 'px');
   }
 
   /**
@@ -362,7 +386,7 @@ class Gallery {
       this.alreadyOpened = true;
     }
 
-    this.init();
+    this.initFeatherlight();
     this.fixSlideHeights();
     this.swiper.update(true);
 
@@ -375,7 +399,8 @@ class Gallery {
     // format.
     window.addEventListener('orientationchange', debounce(this.onOrientationChange.bind(this), debounce_limit));
 
-    this.preventSwipeOnButtons();
+    this.preventSwipeOnButton(this.config.navigation.nextEl);
+    this.preventSwipeOnButton(this.config.navigation.prevEl);
 
     // Add breakpoint-specific changes of config.
     this.registerBreakpointConfig();
@@ -460,49 +485,6 @@ class Gallery {
   }
 
   /**
-   * Basic config that applies to every breakpoint (if not overridden).
-   */
-  get defaultConfig() {
-    let loopedSlides = this.content.querySelectorAll('.swiper-wrapper .swiper-slide:not(.swiper-slide-duplicate)').length;
-
-    return {
-      speed: 400,
-      nextButton: '.gallery__button-next',
-      prevButton: '.gallery__button-prev',
-      grabCursor: true,
-      hashnav: true,
-      hashnavWatchState: true,
-      replaceState: !!this.settings.hashNavReplaceState,
-      keyboardControl: true,
-      pagination: '.gallery__pagination',
-      paginationType: 'fraction',
-      centeredSlides: true,
-      // Disable preloading of all images
-      preloadImages: false,
-      // Enable lazy loading
-      lazyLoading: true,
-      loop: true,
-      loopedSlides: loopedSlides,
-      watchSlidesVisibility: true
-    };
-  }
-
-  get defaultThumbConfig() {
-    let loopedSlides = this.thumbContent.querySelectorAll('.swiper-wrapper .swiper-slide:not(.swiper-slide-duplicate)').length;
-
-    return {
-      loop: true,
-      slidesPerView: 'auto',
-      loopedSlides: loopedSlides,
-      spaceBetween: 10,
-      centeredSlides: true,
-      touchRatio: 0.2,
-      watchSlidesVisibility: true,
-      slideToClickedSlide: true
-    };
-  }
-
-  /**
    * Registers breakpoint-specific config.
    *
    * Note that we do do not use the swiper breakpoint config as it does not
@@ -514,22 +496,6 @@ class Gallery {
   }
 
   /**
-   * Initializes the config dependent on the currently active breakpoints.
-   */
-  initSwiperConfig() {
-    // Process the config as necessary for swiper.
-    if (this.config.prevButton.length) {
-      this.config.prevButton = this.swiperContainer.querySelectorAll(this.config.prevButton)[0];
-    }
-    if (this.config.nextButton.length) {
-      this.config.nextButton = this.swiperContainer.querySelectorAll(this.config.nextButton)[0];
-    }
-    if (this.config.pagination.length) {
-      this.config.pagination = this.swiperContainer.querySelectorAll(this.config.pagination)[0];
-    }
-  }
-
-  /**
    * Shows the gallery in featherlight.
    *
    * If the gallery is already active, the swiper instance is re-initialized.
@@ -537,10 +503,11 @@ class Gallery {
    * with that slide and will be closed by clearing the hash.
    * Otherwise the hash will be the ID of the gallery element.
    */
-  init() {
+  initFeatherlight() {
     let self = this;
 
     if (this.active) {
+      log.info('reinitialize active instance');
       // Do not delete swiper instances as swiper resize events might fire
       // later than our enquire.js resize events. To prevent errors, we kust
       // keep them around but detach them.
@@ -550,15 +517,14 @@ class Gallery {
     }
     else {
       let hashchange = () => {
-        self.handleHashChange()
+        self.onHashChange()
       };
       // Make the fullscreen gallery active.
       window.jQuery.featherlight(self.element, {
         type: 'html',
         variant: 'gallery-featherlight',
-        // We need to wrap it in an anonymous function to avoid featherlight
-        // messing with our "this".
         afterContent: function() {
+          log.info('initialize new instance');
           self.element.classList.remove('is-inactive');
           self.element.classList.add('is-active');
           self.active = true;
@@ -579,65 +545,65 @@ class Gallery {
   }
 
   /**
-   * React on new page impressions due to hash changes.
+   * Create swiper instances & setup event handler.
    */
-  registerGalleryPageImpressionEventHandler() {
-    // Swiper seems to overwrite other onHashChange event handler, thus use
-    // swiper to fire the event handler again.
-    this.swiper.on('slideChangeStart', debounce(() => {
-      GalleryPI.trackNewPageImpression();
-    }, debounce_limit));
-  }
-
-  /**
-   * Close featherlight when hash state is deleted from URL,
-   * otherwise it won't close the gallery when back button is clicked.
-   */
-  handleHashChange() {
-    if (!location.hash) {
-      if (window.jQuery.featherlight.current()) {
-        window.jQuery.featherlight.current().close();
-      }
-    }
-  }
-
   createSwiperInstance() {
-    log.info('-- creating swiper instance for: ' + this.type);
-    this.initSwiperConfig();
     this.swiper = new Swiper(this.swiperContainer, this.config);
+    this.swiperThumb = new Swiper(this.swiperThumbContainer, this.thumbConfig);
+    this.swiperThumb.controller.control = this.swiper;
+    this.swiper.controller.control = this.swiperThumb;
 
+    log.info('create swiper instance ' + this.swiper.params.direction);
+
+    // Add ad handler for ad_entity module.
     this.adHandler.init(this.swiper, this.isMobile());
-    // Ensure the hash of the first slide is written once enabled in
-    // fullscreen.
-    this.swiper.hashnav.setHash();
+
+    // Ensure the hash of the first slide is written once enabled in fullscreen.
+    this.swiper.hashNavigation.setHash();
+
     // Track page impression of first slide.
     GalleryPI.trackNewPageImpression();
 
-    this.swiperThumb = new Swiper(this.swiperThumbContainer, this.thumbConfig);
-    this.swiperThumb.params.control = this.swiper;
-    this.swiper.params.control = this.swiperThumb;
-
-    this.registerGalleryPageImpressionEventHandler();
-
-    // Update swiper gallery on image load
-    // to avoid issues with container height.
-    this.swiper.on('onLazyImageLoad', (swiper) => {
-      swiper.update();
-    })
-
-    this.swiper.on('onLazyImageReady', (swiper) => {
-      swiper.update();
-    })
+    // Track new page impressions due to hash changes.
+    this.swiper.on('slideChangeTransitionEnd', GalleryPI.trackNewPageImpression);
   }
 
   /**
-   * If the fragment of a specific slide is given, launch the gallery.
+   * Prevent swipe on button.
+   *
+   * @param {string} buttonClass
    */
-  showSlideIfGiven() {
-    let hash = this.getSlideHash();
-    if (hash) {
-      this.launch(hash);
-    }
+  preventSwipeOnButton(buttonClass) {
+    let stopPropagation = (e) => {
+      e.stopPropagation();
+    };
+    let button = this.swiperContainer.querySelector(buttonClass);
+    button.addEventListener('mouseDown', stopPropagation);
+    button.addEventListener('touchstart', stopPropagation);
+  }
+
+  /**
+   * Mobile break applies.
+   *
+   * @returns {boolean}
+   */
+  isMobile() {
+    return window.innerWidth < mobile_breakpoint;
+  }
+
+  /**
+   * Gets slides with a specific type.
+   *
+   * @returns {Array}
+   */
+  getSlidesByType(type) {
+    let slides = [];
+    [].forEach.call(this.swiper.slides, function(slide) {
+      if (slide.classList.contains('swiper-slide-' + type)) {
+        slides.push(slide);
+      }
+    });
+    return slides;
   }
 
   /**
@@ -657,19 +623,6 @@ class Gallery {
     return false;
   }
 
-  stopPropagation(button) {
-    let stopPropagation = (e) => {
-      e.stopPropagation();
-    };
-    button.addEventListener('mouseDown', stopPropagation);
-    button.addEventListener('touchstart', stopPropagation);
-  }
-
-  preventSwipeOnButtons() {
-    this.stopPropagation(this.config.prevButton);
-    this.stopPropagation(this.config.nextButton);
-  }
-
   /**
    * On resize event handler (already debounced).
    */
@@ -679,12 +632,9 @@ class Gallery {
     }
 
     this.fixSlideHeights();
-    this.fixMobileContainerHeight();
+    this.fixVerticalContainerHeight();
     this.hideAddressBar();
-
     this.swiper.update(true);
-    this.swiper.updateContainerSize();
-    this.swiper.updateSlidesSize();
   }
 
   /**
@@ -695,11 +645,20 @@ class Gallery {
       return;
     }
 
-    this.init();
-
+    this.initFeatherlight();
     this.swiper.update(true);
-    this.swiper.updateContainerSize();
-    this.swiper.updateSlidesSize();
+  }
+
+  /**
+   * Close featherlight when hash state is deleted from URL,
+   * otherwise it won't close the gallery when back button is clicked.
+   */
+  onHashChange() {
+    if (!location.hash) {
+      if (window.jQuery.featherlight.current()) {
+        window.jQuery.featherlight.current().close();
+      }
+    }
   }
 
 }
