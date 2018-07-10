@@ -22,7 +22,7 @@
     "idempotent-babel-polyfill": "^6.26.0",
     "loglevel": "^1.4.1",
     "nodelist-foreach-polyfill": "^1.2.0",
-    "swiper": "^3.4.2",
+    "swiper": "^4.3.3",
     "underscore": "^1.8.3"
   }
 }

@@ -512,7 +512,9 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    * @return string
    */
   protected function getSlideIdPrefix() {
-    return 'slide-' . $this->gallery->id() . '-';
+    $paragraph = $this->gallery->_referringItem->getEntity();
+    $hash = substr(md5($paragraph->id() . $this->gallery->id()), 0, 5);
+    return "slide-{$hash}-";
   }
 
 }

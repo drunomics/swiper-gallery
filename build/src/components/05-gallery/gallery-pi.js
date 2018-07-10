@@ -1,9 +1,4 @@
-/**
- * React on new page impressions due to hash changes, like gallerie slides.
- */
-window.addEventListener("hashchange", () => {
-  GalleryPI.trackNewPageImpression();
-});
+import log from 'loglevel';
 
 /**
  * Allows for tracking further page impressions.
@@ -19,6 +14,8 @@ class GalleryPI {
     if (this._lastTrackedHash == window.location.hash) {
       return;
     }
+
+    log.info('track ' + window.location.hash);
 
     this._lastTrackedHash = window.location.hash;
 

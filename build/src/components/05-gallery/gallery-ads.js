@@ -16,7 +16,6 @@ class GalleryAds {
    */
   init(swiper, isMobile) {
     if (typeof(Drupal.ad_entity) === "undefined") {
-      log.info('Ad entity library not found.');
       return;
     }
 

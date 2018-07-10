@@ -35,6 +35,11 @@ var webpack_extra_config = {
         test: /\.scss/,
         enforce: "pre",
         loader: "import-glob-loader"
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules\/(?!(dom7|ssr-window|swiper)\/).*/,
+        loader: 'babel-loader'
       }
     ]
   },

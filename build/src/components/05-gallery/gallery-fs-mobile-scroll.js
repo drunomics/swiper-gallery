@@ -2,6 +2,7 @@ import 'swiper/dist/js/swiper.js';
 import 'featherlight/release/featherlight.min';
 import enquire from 'enquire.js';
 import Gallery from './gallery';
+import log from 'loglevel';
 
 /**
  * A variant with vertical scrolling on mobile phones.
@@ -10,6 +11,8 @@ class GalleryFsMobileScroll extends Gallery {
 
   /**
    * Gets the swiper config for the mobile variant.
+   *
+   * Overrides defaultConfig (see base class).
    *
    * @returns {Object}
    */
@@ -23,17 +26,17 @@ class GalleryFsMobileScroll extends Gallery {
       slidesPerView: 'auto',
       watchSlidesVisibility: true,
       centeredSlides: false,
-      hashnav: true,
-      hashnavWatchState: true,
       loop: false,
-      paginationType: 'custom',
-      // Disable preloading of all images
       preloadImages: false,
-      // Enable lazy loading
-      lazyLoading: true,
-      paginationCustomRender: function (swiper, current, total) {
-        return self.setPagination(swiper, current, total);
-      }
+      // Enable lazy loading.
+      lazy: true,
+      pagination: {
+        el: '.gallery__pagination',
+        type: 'custom',
+        renderCustom: function (swiper, current, total) {
+          return self.paginationHandler(swiper, current, total);
+        },
+      },
     };
   }
 
@@ -54,14 +57,14 @@ class GalleryFsMobileScroll extends Gallery {
         if (self.active) {
           self.config = self.defaultConfig;
           Object.assign(self.config, self.mobileConfig);
-          self.init();
+          self.initFeatherlight();
         }
       },
       // Resets active config to default config.
       unmatch: () => {
         if (self.active) {
           self.config = self.defaultConfig;
-          self.init();
+          self.initFeatherlight();
         }
       }
     })
@@ -73,7 +76,7 @@ class GalleryFsMobileScroll extends Gallery {
   createSwiperInstance() {
     // We need to set a fixed height on the slider so it can calculate
     // meaningful measurements.
-    this.fixMobileContainerHeight();
+    this.fixVerticalContainerHeight();
     super.createSwiperInstance();
 
     // Updates the initial pagination which is showing negative numbers.
@@ -86,7 +89,7 @@ class GalleryFsMobileScroll extends Gallery {
     const self = this;
     if (this.swiper.params.direction === 'vertical') {
       setTimeout(function () {
-        self.swiper.updateClasses();
+        self.swiper.update();
       }, 500);
     }
   }
@@ -106,7 +109,7 @@ class GalleryFsMobileScroll extends Gallery {
    *
    * @returns {string}
    */
-  setPagination(swiper, current, total) {
+  paginationHandler(swiper, current, total) {
     // Get gallery slides.
     let slides = this.content.querySelectorAll('.swiper-wrapper')[0].querySelectorAll('.gallery-slide');
     let activeSlide = slides[0].parentElement.querySelector('.swiper-slide-active');
