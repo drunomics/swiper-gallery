@@ -5,11 +5,6 @@ import { debounce } from 'underscore';
 import GalleryPI from './gallery-pi';
 import GalleryAds from './gallery-ads';
 
-// Limit smaller than 200 can trigger flickering behavior when resizing the
-// gallery.
-let debounce_limit = 200;
-let mobile_breakpoint = 534;
-
 /**
  * Default gallery.
  */
@@ -25,12 +20,31 @@ class Gallery {
   }
 
   /**
+   * Mobile breakpoint.
+   *
+   * @returns {number}
+   */
+  static get mobileBreakpoint() {
+    return 534;
+  }
+
+  /**
+   * Wait parameter for debounce.
+   *
+   * @returns {number}
+   */
+  static get debounceLimit() {
+    return 200;
+  }
+
+  /**
    * Swiper config for the main swiper instance.
    *
    * @return {Object}
    */
   get defaultConfig() {
-    let loopedSlides = this.content.querySelectorAll('.swiper-wrapper .swiper-slide:not(.swiper-slide-duplicate)').length;
+    const loopedSlides = this.content.querySelectorAll('.swiper-wrapper .swiper-slide:not(.swiper-slide-duplicate)').length;
+    const self = this;
 
     return {
       speed: 400,
@@ -59,6 +73,19 @@ class Gallery {
       loopedSlides: loopedSlides,
       watchSlidesVisibility: true,
       updateOnImagesReady: true,
+      on: {
+        lazyImageReady: function (slide, image) {
+          // This makes sure that swiper calculations work properly after images
+          // are loaded (which changes container size for vertical scrolling.)
+          if (typeof(self.swiper) !== "undefined") {
+            self.swiper.update();
+          }
+        },
+        slideChangeTransitionEnd: function() {
+          // Track new page impressions due to hash changes.
+          GalleryPI.trackNewPageImpression();
+        }
+      }
     };
   }
 
@@ -68,7 +95,7 @@ class Gallery {
    * @return {Object}
    */
   get defaultThumbConfig() {
-    let loopedSlides = this.thumbContent.querySelectorAll('.swiper-wrapper .swiper-slide:not(.swiper-slide-duplicate)').length;
+    const loopedSlides = this.thumbContent.querySelectorAll('.swiper-wrapper .swiper-slide:not(.swiper-slide-duplicate)').length;
 
     return {
       loop: true,
@@ -83,10 +110,17 @@ class Gallery {
   }
 
   /**
-   * Attaches the class to the elements of the given selector.
+   * Attaches the gallery to the elements of the given selector.
    *
-   * The class will only be attached if the data-gallery-type matches the
-   * defined type.
+   * A page can contain multiple galleries. The class will only be attached if
+   * the data-gallery-type matches the defined type.
+   *
+   * @param {string} context
+   *   Dom context.
+   * @param {Array} settings
+   *   Custom gallery settings passed by the field formatter.
+   * @param {string} selector
+   *   Gallery will be attached to all elements with this selector.
    */
   static attach(context, settings, selector = '.gallery') {
     let self = this;
@@ -95,30 +129,39 @@ class Gallery {
           return;
       }
 
-      var instance_settings = {};
+      // Settings can differ depending on which viewmode is attached.
+      let instanceSettings = {};
       for (var key in settings) {
         if (element.classList.contains(key)) {
-          instance_settings = settings[key];
+          instanceSettings = settings[key];
           break;
         }
       }
-      element.gallery = new self(element, instance_settings);
-      element.querySelectorAll('.gallery-launcher').forEach((e) => {
-        if (e.classList.contains('gallery-launcher-main')) {
+      element.gallery = new self(element, instanceSettings);
+      element.querySelectorAll('.gallery-launcher').forEach((launcher) => {
+        if (launcher.classList.contains('gallery-launcher-main')) {
           // Launch if a slide hash is available in the url.
           if (element.gallery.getSlideHash()) {
             element.gallery.launch();
           }
         }
-        e.addEventListener('click', () => {
+        launcher.addEventListener('click', () => {
           // Ensure there is a new, clean gallery instance on every click.
-          element.gallery = new self(element, instance_settings);
+          element.gallery = new self(element, instanceSettings);
           element.gallery.launch();
         })
       });
     })
   }
 
+  /**
+   * Constructor.
+   *
+   * @param {Object} element
+   *   Gallery Node.
+   * @param {Array} settings
+   *   Viewmode specific gallery settings.
+   */
   constructor(element, settings) {
     this.settings = settings || {};
     this.originalElement = element;
@@ -139,7 +182,7 @@ class Gallery {
     this.thumbContent = this.element.querySelectorAll('.gallery__thumbs')[0];
     this.swiperThumbContainer = this.thumbContent.querySelectorAll('.swiper-container')[0];
 
-    // Set default config and show it.
+    // Set default config.
     this.config = this.defaultConfig;
     this.thumbConfig = this.defaultThumbConfig;
 
@@ -147,101 +190,131 @@ class Gallery {
   }
 
   /**
-   * Calculate gallery height and width.
-   *
-   * @param {Array} heightwidth
-   *   First element is height, second element is width.
-   *
-   * @return {Array}
-   *   The calculated height and width.
+   * Initially launches the gallery.
    */
-  calculateGalleryImageHeightWidth(heightwidth) {
-    let featherlightContent = document.querySelector('.featherlight-content');
-    let wh = [];
-
-    wh.height = heightwidth[0];
-    if (featherlightContent.offsetHeight < heightwidth[0]) {
-      wh.height = featherlightContent.offsetHeight;
+  launch() {
+    // Push current page to history stack to be able to return to it when
+    // back button is clicked.
+    if (!this.alreadyOpened) {
+      history.pushState(null, document.title, location.href);
+      this.alreadyOpened = true;
     }
 
-    wh.width = heightwidth[1];
-    if (featherlightContent.offsetWidth < heightwidth[1]) {
-      wh.width = featherlightContent.offsetWidth;
-    }
+    // If browser is resized calculate image and container height (and width).
+    window.addEventListener('resize', debounce(this.onResize.bind(this), Gallery.debounceLimit));
 
-    return wh;
+    // If we change orientation we have to create new swiper instance as gallery
+    // slide widths are not updates by Swiper in the same way as on a resize
+    // event. This problem occurs when the gallery is already in landscape
+    // format.
+    window.addEventListener('orientationchange', debounce(this.onOrientationChange.bind(this), Gallery.debounceLimit));
+
+    this.preventSwipeOnButton(this.config.navigation.nextEl);
+    this.preventSwipeOnButton(this.config.navigation.prevEl);
+
+    // Add breakpoint-specific changes of config.
+    this.registerBreakpointConfig();
+    this.initFeatherlight();
+    this.fixSlideHeights();
+    this.swiper.update(true);
+
+    this.hideAddressBar();
+    this.quickHideAddressBar();
+
+    let event = new Event('gallery:launched');
+    this.originalElement.dispatchEvent(event);
   }
 
   /**
-   * Check bounding box width (boxImageWidth) and height (boxImageHeight) to
-   * figuere out if the image has to be scaled to the width or height of the
-   * bounding box.
+   * Registers breakpoint-specific config.
    *
-   * @param {Node} image
-   *   A single image in the gallery.
-   * @param {number} availableImageHeight
-   *   Available height for the image in the bounding box.
-   * @param {number} boxImageWidth
-   *   Bounding box width.
+   * Note that we do do not use the swiper breakpoint config as it does not
+   * support changing all swiper options. Instead we re-init the whole swiper
+   * when necessary.
    */
-  fixImageHeightsWidth (image, availableImageHeight, boxImageWidth) {
-    let boxImageHeight = availableImageHeight - (parseInt(image.closest('.media-image').offsetHeight, 10) - parseInt(image.offsetHeight, 10));
+  registerBreakpointConfig() {
+    // See GalleryFsMobileScroll.registerBreakpointConfig() for an example.
+  }
 
-    // Remove possible padding to image.
-    image.parentElement.style.removeProperty('padding-top');
-    image.parentElement.style.removeProperty('padding-bottom');
+  /**
+   * Shows the gallery in featherlight.
+   *
+   * If the gallery is already active, the swiper instance is re-initialized.
+   * If the gallery is loaded with a slide ID in the hash the gallery is opened
+   * with that slide and will be closed by clearing the hash.
+   * Otherwise the hash will be the ID of the gallery element.
+   */
+  initFeatherlight() {
+    let self = this;
 
-    // First check if original image width and height is smaller than the
-    // bounding box. In that case set the width and height to the image's
-    // original width and height.
-    let imageHeight = image.getAttribute('height');
-    let imageWidth = image.getAttribute('width');
-    if (imageHeight <= boxImageHeight && imageWidth <= boxImageWidth) {
-      // In case the image height or width could not be calculated when
-      // initializing the gallery set initial width and height of the bounding
-      // box to the image.
-
-      if (imageWidth === 0 || imageHeight === 0) {
-        image.style.height = boxImageHeight + 'px';
-        image.style.width = 'inherit';
-      }
-      else {
-        image.style.height = imageHeight + 'px';
-        image.style.width = imageWidth + 'px';
-
-        // Add padding to top and bottom to center image.
-        if (boxImageHeight > imageHeight) {
-          let paddingTopBottom = (boxImageHeight - imageHeight) / 2;
-          image.parentElement.style.setProperty('padding-top', paddingTopBottom + 'px');
-          image.parentElement.style.setProperty('padding-bottom', paddingTopBottom + 'px');
-        }
-      }
+    if (this.active) {
+      log.info('reinitialize active instance');
+      // Do not delete swiper instances as swiper resize events might fire
+      // later than our enquire.js resize events. To prevent errors, we must
+      // keep them around but detach them.
+      this.swiperThumb.destroy(false, true);
+      this.swiper.destroy(false, true);
+      this.createSwiperInstance();
     }
     else {
-      let imageCalculatedHeight = boxImageWidth * imageHeight / imageWidth;
-      let imageCalculatedWidth = boxImageHeight * imageWidth / imageHeight;
-
-      // Height of image is smaller than bounding box height.
-      if (boxImageHeight > imageHeight) {
-        image.style.height = imageCalculatedHeight + 'px';
-        image.style.width = imageCalculatedWidth + 'px';
-
-        let paddingTopBottom = (boxImageHeight - imageCalculatedHeight) / 2;
-        image.parentElement.style.setProperty('padding-top', paddingTopBottom + 'px');
-        image.parentElement.style.setProperty('padding-bottom', paddingTopBottom + 'px');
-      }
-      else {
-        // Height of calculated image is larger than bounding box height.
-        if (imageCalculatedHeight >= boxImageHeight) {
-          image.style.height = boxImageHeight + 'px';
-          image.style.width = 'inherit';
-        }
-        else {
-          image.style.height = 'inherit';
-          image.style.width = boxImageWidth + 'px';
+      // Close featherlight when hash state is deleted from URL, otherwise it
+      // won't close the gallery when back button is clicked.
+      let onhashchange = () => {
+        if (!location.hash) {
+          if (window.jQuery.featherlight.current()) {
+            window.jQuery.featherlight.current().close();
+          }
         }
       }
+
+      // Make the fullscreen gallery active.
+      window.jQuery.featherlight(self.element, {
+        type: 'html',
+        variant: 'gallery-featherlight',
+        afterContent: function() {
+          log.info('initialize new instance');
+          self.element.classList.remove('is-inactive');
+          self.element.classList.add('is-active');
+          self.active = true;
+          self.createSwiperInstance();
+          window.addEventListener('hashchange', onhashchange);
+        },
+        afterClose: function() {
+          self.active = false;
+          self.element.classList.add('is-inactive');
+          self.element.classList.remove('is-active');
+
+          // Remove the slide hash from URL.
+          history.replaceState(undefined, undefined, window.location.pathname);
+          window.removeEventListener('hashchange', onhashchange);
+        }
+      });
     }
+  }
+
+  /**
+   * Create swiper instances & setup event handler.
+   */
+  createSwiperInstance() {
+    // We need to set a fixed height on the slider so it can calculate
+    // meaningful measurements.
+    this.fixVerticalContainerHeight();
+
+    this.swiper = new Swiper(this.swiperContainer, this.config);
+    this.swiperThumb = new Swiper(this.swiperThumbContainer, this.thumbConfig);
+    this.swiperThumb.controller.control = this.swiper;
+    this.swiper.controller.control = this.swiperThumb;
+
+    log.info('create swiper instance ' + this.swiper.params.direction);
+
+    // Initialize ad handler for ad_entity module.
+    this.adHandler.init(this.swiper, Gallery.isMobile());
+
+    // Ensure the hash of the first slide is written once enabled in fullscreen.
+    this.swiper.hashNavigation.setHash();
+
+    // Track page impression of first slide.
+    GalleryPI.trackNewPageImpression();
   }
 
   /**
@@ -271,7 +344,7 @@ class Gallery {
     featherlightContent.removeAttribute('style');
 
     // Calculate width and height of featherligt gallery content area.
-    let galleryHeightWidth = this.calculateGalleryImageHeightWidth([windowheight, windowwidth]);
+    let galleryHeightWidth = Gallery.calculateGalleryImageHeightWidth([windowheight, windowwidth]);
 
     featherlightContent.style.setProperty('width', galleryHeightWidth.width + 'px');
 
@@ -329,7 +402,7 @@ class Gallery {
         })
       }
 
-      if (this.isMobile()) {
+      if (Gallery.isMobile()) {
         image.style.height = 'auto';
         image.parentElement.removeAttribute('style');
 
@@ -341,7 +414,7 @@ class Gallery {
       else {
         // Remove top padding for first slide.
         imageWrapper.style.setProperty('padding-top', 0);
-        this.fixImageHeightsWidth(image, availableImageHeight, boxImageWidth);
+        Gallery.fixImageHeightsWidth(image, availableImageHeight, boxImageWidth);
       }
     }, this);
 
@@ -354,7 +427,7 @@ class Gallery {
    * Fixes height of breaker slides.
    */
   fixBreakerSlideHeights() {
-    if (this.isMobile()) {
+    if (Gallery.isMobile()) {
       return;
     }
     const firstSlide = this.content.querySelector('.swiper-wrapper').querySelector('.gallery-slide[data-swiper-slide-index="0"]:not(.swiper-slide-duplicate)');
@@ -368,47 +441,108 @@ class Gallery {
    * Fix container height for vertical scrolling on mobile.
    */
   fixVerticalContainerHeight() {
-    if (!this.isMobile()) {
-      return;
+    if (Gallery.isMobile()) {
+      const featherlightHeight = document.querySelector('.featherlight').clientHeight;
+      this.swiperContainer.style.setProperty('height', featherlightHeight + 'px');
     }
-    const featherlightHeight = document.querySelector('.featherlight').clientHeight;
-    this.swiperContainer.style.setProperty('height', featherlightHeight + 'px');
   }
 
   /**
-   * Initially launches the gallery.
+   * Calculate gallery height and width.
+   *
+   * @param {Array} heightwidth
+   *   First element is height, second element is width.
+   *
+   * @return {Array}
+   *   The calculated height and width.
    */
-  launch() {
-    // Push current page to history stack to be able to return to it when
-    // back button is clicked.
-    if (!this.alreadyOpened) {
-      history.pushState(null, document.title, location.href);
-      this.alreadyOpened = true;
+  static calculateGalleryImageHeightWidth(heightwidth) {
+    const featherlightContent = document.querySelector('.featherlight-content');
+    let wh = [];
+
+    wh.height = heightwidth[0];
+    if (featherlightContent.offsetHeight < heightwidth[0]) {
+      wh.height = featherlightContent.offsetHeight;
     }
 
-    this.initFeatherlight();
-    this.fixSlideHeights();
-    this.swiper.update(true);
+    wh.width = heightwidth[1];
+    if (featherlightContent.offsetWidth < heightwidth[1]) {
+      wh.width = featherlightContent.offsetWidth;
+    }
 
-    // If browser is resized calculate image and container height (and width).
-    window.addEventListener('resize', debounce(this.onResize.bind(this), debounce_limit));
+    return wh;
+  }
 
-    // If we change orientation we have to create new swiper instance as gallery
-    // slide widths are not updates by Swiper in the same way as on a resize
-    // event. This problem occurs when the gallery is already in landscape
-    // format.
-    window.addEventListener('orientationchange', debounce(this.onOrientationChange.bind(this), debounce_limit));
+  /**
+   * Check bounding box width (boxImageWidth) and height (boxImageHeight) to
+   * figuere out if the image has to be scaled to the width or height of the
+   * bounding box.
+   *
+   * @param {Node} image
+   *   A single image in the gallery.
+   * @param {number} availableImageHeight
+   *   Available height for the image in the bounding box.
+   * @param {number} boxImageWidth
+   *   Bounding box width.
+   */
+  static fixImageHeightsWidth (image, availableImageHeight, boxImageWidth) {
+    let boxImageHeight = availableImageHeight - (parseInt(image.closest('.media-image').offsetHeight, 10) - parseInt(image.offsetHeight, 10));
 
-    this.preventSwipeOnButton(this.config.navigation.nextEl);
-    this.preventSwipeOnButton(this.config.navigation.prevEl);
+    // Remove possible padding to image.
+    image.parentElement.style.removeProperty('padding-top');
+    image.parentElement.style.removeProperty('padding-bottom');
 
-    // Add breakpoint-specific changes of config.
-    this.registerBreakpointConfig();
+    // First check if original image width and height is smaller than the
+    // bounding box. In that case set the width and height to the image's
+    // original width and height.
+    let imageHeight = image.getAttribute('height');
+    let imageWidth = image.getAttribute('width');
+    if (imageHeight <= boxImageHeight && imageWidth <= boxImageWidth) {
+      // In case the image height or width could not be calculated when
+      // initializing the gallery set initial width and height of the bounding
+      // box to the image.
 
-    this.hideAddressBar();
-    this.quickHideAddressBar();
-    let event = new Event('gallery:launched');
-    this.originalElement.dispatchEvent(event);
+      if (imageWidth === 0 || imageHeight === 0) {
+        image.style.height = boxImageHeight + 'px';
+        image.style.width = 'inherit';
+      }
+      else {
+        image.style.height = imageHeight + 'px';
+        image.style.width = imageWidth + 'px';
+
+        // Add padding to top and bottom to center image.
+        if (boxImageHeight > imageHeight) {
+          let paddingTopBottom = (boxImageHeight - imageHeight) / 2;
+          image.parentElement.style.setProperty('padding-top', paddingTopBottom + 'px');
+          image.parentElement.style.setProperty('padding-bottom', paddingTopBottom + 'px');
+        }
+      }
+    }
+    else {
+      let imageCalculatedHeight = boxImageWidth * imageHeight / imageWidth;
+      let imageCalculatedWidth = boxImageHeight * imageWidth / imageHeight;
+
+      // Height of image is smaller than bounding box height.
+      if (boxImageHeight > imageHeight) {
+        image.style.height = imageCalculatedHeight + 'px';
+        image.style.width = imageCalculatedWidth + 'px';
+
+        let paddingTopBottom = (boxImageHeight - imageCalculatedHeight) / 2;
+        image.parentElement.style.setProperty('padding-top', paddingTopBottom + 'px');
+        image.parentElement.style.setProperty('padding-bottom', paddingTopBottom + 'px');
+      }
+      else {
+        // Height of calculated image is larger than bounding box height.
+        if (imageCalculatedHeight >= boxImageHeight) {
+          image.style.height = boxImageHeight + 'px';
+          image.style.width = 'inherit';
+        }
+        else {
+          image.style.height = 'inherit';
+          image.style.width = boxImageWidth + 'px';
+        }
+      }
+    }
   }
 
   /**
@@ -485,90 +619,6 @@ class Gallery {
   }
 
   /**
-   * Registers breakpoint-specific config.
-   *
-   * Note that we do do not use the swiper breakpoint config as it does not
-   * support changing all swiper options. Instead we re-init the whole swiper
-   * when necessary.
-   */
-  registerBreakpointConfig() {
-    // See GalleryFsMobileScroll.registerBreakpointConfig() for an example.
-  }
-
-  /**
-   * Shows the gallery in featherlight.
-   *
-   * If the gallery is already active, the swiper instance is re-initialized.
-   * If the gallery is loaded with a slide ID in the hash the gallery is opened
-   * with that slide and will be closed by clearing the hash.
-   * Otherwise the hash will be the ID of the gallery element.
-   */
-  initFeatherlight() {
-    let self = this;
-
-    if (this.active) {
-      log.info('reinitialize active instance');
-      // Do not delete swiper instances as swiper resize events might fire
-      // later than our enquire.js resize events. To prevent errors, we kust
-      // keep them around but detach them.
-      this.swiperThumb.destroy(false, true);
-      this.swiper.destroy(false, true);
-      this.createSwiperInstance();
-    }
-    else {
-      let hashchange = () => {
-        self.onHashChange()
-      };
-      // Make the fullscreen gallery active.
-      window.jQuery.featherlight(self.element, {
-        type: 'html',
-        variant: 'gallery-featherlight',
-        afterContent: function() {
-          log.info('initialize new instance');
-          self.element.classList.remove('is-inactive');
-          self.element.classList.add('is-active');
-          self.active = true;
-          self.createSwiperInstance();
-          window.addEventListener('hashchange', hashchange);
-        },
-        afterClose: function() {
-          self.active = false;
-          self.element.classList.add('is-inactive');
-          self.element.classList.remove('is-active');
-
-          // Remove the slide hash from URL.
-          history.replaceState(undefined, undefined, window.location.pathname);
-          window.removeEventListener('hashchange', hashchange);
-        }
-      });
-    }
-  }
-
-  /**
-   * Create swiper instances & setup event handler.
-   */
-  createSwiperInstance() {
-    this.swiper = new Swiper(this.swiperContainer, this.config);
-    this.swiperThumb = new Swiper(this.swiperThumbContainer, this.thumbConfig);
-    this.swiperThumb.controller.control = this.swiper;
-    this.swiper.controller.control = this.swiperThumb;
-
-    log.info('create swiper instance ' + this.swiper.params.direction);
-
-    // Add ad handler for ad_entity module.
-    this.adHandler.init(this.swiper, this.isMobile());
-
-    // Ensure the hash of the first slide is written once enabled in fullscreen.
-    this.swiper.hashNavigation.setHash();
-
-    // Track page impression of first slide.
-    GalleryPI.trackNewPageImpression();
-
-    // Track new page impressions due to hash changes.
-    this.swiper.on('slideChangeTransitionEnd', GalleryPI.trackNewPageImpression);
-  }
-
-  /**
    * Prevent swipe on button.
    *
    * @param {string} buttonClass
@@ -587,8 +637,8 @@ class Gallery {
    *
    * @returns {boolean}
    */
-  isMobile() {
-    return window.innerWidth < mobile_breakpoint;
+  static isMobile() {
+    return window.innerWidth <= Gallery.mobileBreakpoint;
   }
 
   /**
@@ -597,6 +647,9 @@ class Gallery {
    * @returns {Array}
    */
   getSlidesByType(type) {
+    if (typeof(this.swiper) === "undefined") {
+      return [];
+    }
     let slides = [];
     [].forEach.call(this.swiper.slides, function(slide) {
       if (slide.classList.contains('swiper-slide-' + type)) {
@@ -647,18 +700,6 @@ class Gallery {
 
     this.initFeatherlight();
     this.swiper.update(true);
-  }
-
-  /**
-   * Close featherlight when hash state is deleted from URL,
-   * otherwise it won't close the gallery when back button is clicked.
-   */
-  onHashChange() {
-    if (!location.hash) {
-      if (window.jQuery.featherlight.current()) {
-        window.jQuery.featherlight.current().close();
-      }
-    }
   }
 
 }
