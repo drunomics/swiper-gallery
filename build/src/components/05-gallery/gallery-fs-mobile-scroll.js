@@ -1,5 +1,3 @@
-import 'swiper/dist/js/swiper.js';
-import 'featherlight/release/featherlight.min';
 import enquire from 'enquire.js';
 import Gallery from './gallery';
 import log from 'loglevel';
@@ -8,6 +6,13 @@ import log from 'loglevel';
  * A variant with vertical scrolling on mobile phones.
  */
 class GalleryFsMobileScroll extends Gallery {
+
+  /**
+   * @inheritdoc
+   */
+  static get type() {
+    return 'fs-mobile-scroll';
+  }
 
   /**
    * Gets the swiper config for the mobile variant.
@@ -43,55 +48,27 @@ class GalleryFsMobileScroll extends Gallery {
   /**
    * @inheritdoc
    */
-  static get type() {
-    return 'fs-mobile-scroll';
-  }
-
-  /**
-   * @inheritdoc
-   */
   registerBreakpointConfig() {
     let self = this;
-    enquire.register('screen and (max-width:533px)', {
+    enquire.register('screen and (max-width:' + Gallery.mobileBreakpoint + 'px)', {
       match: () => {
+        // Apply mobile config.
+        self.config = self.defaultConfig;
+        Object.assign(self.config, self.mobileConfig);
+        // Reinitialize if already opened (resize event).
         if (self.active) {
-          self.config = self.defaultConfig;
-          Object.assign(self.config, self.mobileConfig);
           self.initFeatherlight();
         }
       },
-      // Resets active config to default config.
       unmatch: () => {
+        // Set to default config.
+        self.config = self.defaultConfig;
+        // Reinitialize if already opened (resize event).
         if (self.active) {
-          self.config = self.defaultConfig;
           self.initFeatherlight();
         }
       }
     })
-  }
-
-  /**
-   * @inheritdoc
-   */
-  createSwiperInstance() {
-    // We need to set a fixed height on the slider so it can calculate
-    // meaningful measurements.
-    this.fixVerticalContainerHeight();
-    super.createSwiperInstance();
-
-    // Updates the initial pagination which is showing negative numbers.
-    // The initial pagination is not showing data from the custom pagination
-    // handler, eg. for 1/11 it will show 12/-11, which must be a calculation
-    // error inside of swiper.
-    // With updateClasses it will use the handler (only necessary on mobile).
-    // @see registerBreakpointConfig()
-    // @see setPagination()
-    const self = this;
-    if (this.swiper.params.direction === 'vertical') {
-      setTimeout(function () {
-        self.swiper.update();
-      }, 500);
-    }
   }
 
   /**
