@@ -1,6 +1,5 @@
 import enquire from 'enquire.js';
 import Gallery from './gallery';
-import log from 'loglevel';
 
 /**
  * A variant with vertical scrolling on mobile phones.
@@ -22,7 +21,7 @@ class GalleryFsMobileScroll extends Gallery {
    * @returns {Object}
    */
   get mobileConfig() {
-    const self = this;
+    let self = this;
     return {
       freeMode: true,
       direction: 'vertical',
@@ -33,13 +32,15 @@ class GalleryFsMobileScroll extends Gallery {
       centeredSlides: false,
       loop: false,
       preloadImages: false,
-      // Enable lazy loading.
       lazy: true,
       pagination: {
         el: '.gallery__pagination',
         type: 'custom',
         renderCustom: function (swiper, current, total) {
-          return self.paginationHandler(swiper, current, total);
+          // The total provided by swiper will be the amount of loaded slides.
+          // We provide the real total value by counting the slides.
+          let slides = self.content.querySelectorAll('.swiper-wrapper')[0].querySelectorAll('.gallery-slide');
+          return '<span class="swiper-pagination-current">' + current + '</span> / <span class="swiper-pagination-total">' + slides.length + '</span>';
         },
       },
     };
@@ -69,30 +70,6 @@ class GalleryFsMobileScroll extends Gallery {
         }
       }
     })
-  }
-
-  /**
-   * Custom pagination handler submitted to the Swiper config.
-   *
-   * This takes unloades slides into account. Without this, Swiper will show
-   * wrong pagination numbers.
-   *
-   * @param {Object} swiper
-   *   Swiper instance.
-   * @param {int} current
-   *   Current slide.
-   * @param {int} total
-   *   Total slides.
-   *
-   * @returns {string}
-   */
-  paginationHandler(swiper, current, total) {
-    // Get gallery slides.
-    let slides = this.content.querySelectorAll('.swiper-wrapper')[0].querySelectorAll('.gallery-slide');
-    let activeSlide = slides[0].parentElement.querySelector('.swiper-slide-active');
-    let calculated_current = ([...slides].indexOf(activeSlide) + 1);
-    let calculated_total = parseInt(slides.length, 10);
-    return '<span class="swiper-pagination-current">' + calculated_current + '</span> / <span class="swiper-pagination-total">' + calculated_total + '</span>';
   }
 }
 

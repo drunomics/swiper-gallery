@@ -1,5 +1,4 @@
 import log from 'loglevel';
-import { debounce } from 'underscore';
 
 /**
  * Ad handler for the gallery.
@@ -11,34 +10,14 @@ class GalleryAds {
    *
    * @param {Object} swiper
    *   The swiper instance.
-   * @param {bool} isMobile
-   *   Mobile version flag.
    */
-  init(swiper, isMobile) {
+  init(swiper) {
     if (typeof(Drupal.ad_entity) === "undefined") {
       return;
     }
 
     this.swiper = swiper;
-    this.isMobile = isMobile;
-
-    // In case gallery was duplicated but ads are already initialized.
-    this.swiper.update();
-
-    let self = this;
-
-    window.addEventListener('resize', debounce(function () {
-      //this.swiper.update();
-    }, 100));
-
-    // Looping swiper will generate duplicates of slides, in this case we need
-    // to initialize the slides/duplicates when we slide to it.
-    this.swiper.on('slideChangeStart', function (swiper) {
-      // Initialize ads in the immediate vicinity.
-      for (var i = -2; i < 3; i++) {
-        self.initializeAdSlide(i);
-      }
-    });
+    this.initializeAllAds();
   }
 
   /**
@@ -60,20 +39,12 @@ class GalleryAds {
   }
 
   /**
-   * Initialize ad on current slide.
-   *
-   * @param {int} offset
-   *   The offset to the current slide. eg.: -1 to address the previous slide.
+   * Initialize all ads in the gallery.
    */
-  initializeAdSlide(offset) {
-    offset = offset || 0;
-    let swiper = this.swiper;
-    let index = swiper.activeIndex + offset;
-    let slide = swiper.slides[index];
-
-    if (typeof(slide) !== "undefined" && slide.querySelectorAll('.ad-entity-container').length > 0) {
-      this.initializeAd(slide);
-    }
+  initializeAllAds() {
+    this.getAdSlides().forEach(function(ad_slide) {
+      GalleryAds.initializeAd(ad_slide);
+    });
   }
 
   /**
@@ -85,7 +56,7 @@ class GalleryAds {
    * @param {Object} ad_slide
    *   A slide containing an ad.
    */
-  initializeAd(ad_slide) {
+  static initializeAd(ad_slide) {
     let ad = ad_slide.querySelector('.ad-entity-container');
 
     log.info('initializeAd');
@@ -114,27 +85,7 @@ class GalleryAds {
     // Ad_entity expects a jQuery object, and if enabled will also have
     // it as adependency.
     ad = window.jQuery(ad);
-
     Drupal.ad_entity.restrictAndInitialize([ad], document, drupalSettings);
-    this.swiper.update();
-  }
-
-  /**
-   * Initialize all ads in the gallery.
-   *
-   * This should be used only if the the gallery has loop disabled. A looping
-   * gallery will duplicate the slides and thus introduce duplicate container-
-   * ids, which makes loading of ads impossible.
-   *
-   * In case of looping use the dynamic approach per slide change.
-   * @see init()
-   * @see initializeAdSlide()
-   */
-  initializeAllAds() {
-    let self = this;
-    this.getAdSlides().forEach(function(ad_slide) {
-      self.initializeAd(ad_slide);
-    });
   }
 }
 
