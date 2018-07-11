@@ -137,6 +137,16 @@ class Gallery {
           break;
         }
       }
+
+      // Remove empty breakers. Since a breaker could be any block really, we
+      // do not know if some condition applies which leads to an empty slide.
+      [].forEach.call(element.querySelectorAll('.swiper-slide'), (slide) => {
+        let breaker = slide.querySelector('.gallery-breaker');
+        if (breaker && breaker.innerHTML.trim().length === 0) {
+          slide.parentNode.removeChild(slide);
+        }
+      });
+
       element.gallery = new self(element, instanceSettings);
       element.querySelectorAll('.gallery-launcher').forEach((launcher) => {
         if (launcher.classList.contains('gallery-launcher-main')) {
