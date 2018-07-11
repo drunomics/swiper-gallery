@@ -361,7 +361,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    *   The build array containing the breakers.
    */
   protected function insertBreaker(array $build, BlockPluginInterface $breaker, $is_thumbnails = FALSE) {
-    $breaker_position = $this->getSetting('breaker_position') - 1;
+    $breaker_position = (int) $this->getSetting('breaker_position') - 1;
     if ($breaker instanceof Broken || $breaker_position > count($build)) {
       return $build;
     }
@@ -379,7 +379,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       if ($i % $breaker_position == 0) {
         $items[] = [
           '#theme' => 'swiper_gallery_breaker',
-          '#id' => $break_id++,
+          '#id' => $this->getSlideIdPrefix() . 'breaker-' . $break_id++,
           '#breaker' => $breaker_build,
           '#variant' => $is_thumbnails ? 'imageonly' : 'gallery',
         ];
