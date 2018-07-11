@@ -45,9 +45,9 @@ function swiper_gallery_theme($existing, $type, $theme, $path) {
       'variables' => [
         'preview_type' => 'thumbs',
         'launcher_main_text' => '',
-        'launcher_footer_text' => '',
-        'footer_image' => NULL,
-        'footer_thumbs' => [],
+        'launcher_thumbnails_text' => '',
+        'preview_thumbnails_media' => NULL,
+        'preview_thumbnails_thumbs' => [],
         'image_count' => 0,
         'media' => NULL,
       ],

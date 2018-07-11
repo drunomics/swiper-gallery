@@ -1,30 +1,31 @@
-{% if preview_type == 'thumbs' and footer_thumbs is not empty %}
-    <article class="media media-image">
-        <section>{{ footer_image }}</section>
-    </article>
-
-    <section class="gallery-footer">
-        {% for thumb in footer_thumbs %}
-            <div class="gallery-footer__thumb gallery-launcher">{{ thumb }}</div>
-        {% endfor %}
-        <div class="gallery-footer__show-all gallery-footer__thumb">
-            <div class='gallery-launcher gallery-launcher-footer'>
-                <div class='gallery-launcher-footer__wrapper'>
-                    <div class="gallery-launcher-footer__counter">
-                        <span class="gallery-launcher-footer__icon"></span>
-                        {{ image_count }}
-                    </div>
-                    <div class="gallery-launcher-footer__text">{{ launcher_footer_text }}</div>
-                </div>
-            </div>
-        </div>
-    </section>
-{% else %}
+<article class="gallery__preview-image">
+  {% if preview_type == 'thumbs' and preview_thumbnails_thumbs is not empty %}
+    {{ preview_thumbnails_media }}
+  {% else %}
     {{ media }}
-{% endif %}
-
-<div class='gallery-launcher gallery-launcher-main'>
+  {% endif %}
+  <div class='gallery-launcher gallery-launcher-main'>
     <div class='gallery-launcher-main__wrapper'>
-        <div class="gallery-launcher-main__text">{{ launcher_main_text }}</div>
+      <div class="gallery-launcher-main__text">{{ launcher_main_text }}</div>
     </div>
-</div>
+  </div>
+</article>
+
+{% if preview_type == 'thumbs' and preview_thumbnails_thumbs is not empty %}
+  <section class="gallery-preview-thumbnails">
+    {% for thumb in preview_thumbnails_thumbs %}
+      <div class="gallery-preview-thumbnails__thumb gallery-launcher">{{ thumb }}</div>
+    {% endfor %}
+    <div class="gallery-preview-thumbnails__show-all gallery-preview-thumbnails__thumb">
+      <div class='gallery-launcher gallery-launcher-thumbnails'>
+        <div class='gallery-launcher-thumbnails__wrapper'>
+          <div class="gallery-launcher-thumbnails__counter">
+            <span class="gallery-launcher-thumbnails__icon"></span>
+            {{ image_count }}
+          </div>
+          <div class="gallery-launcher-thumbnails__text">{{ launcher_thumbnails_text }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endif %}

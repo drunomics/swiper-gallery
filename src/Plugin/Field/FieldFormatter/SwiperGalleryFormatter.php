@@ -140,13 +140,14 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   public static function defaultSettings() {
     return [
       'launcher_main_text' => 'Start gallery',
-      'launcher_footer_text' => 'Show all',
+      'launcher_thumbnails_text' => 'Show all',
       'show_preview_headline' => FALSE,
       'preview_type' => 'thumbs',
       'image_style_preview_image' => 'swiper_gallery_preview',
       'image_style_preview_thumbnail' => 'swiper_gallery_preview_thumbnail',
       'image_style_gallery_thumbnail' => 'swiper_gallery_thumbnail',
       'view_mode_gallery_preview' => 'default',
+      'view_mode_gallery_preview_with_thumbs' => 'default',
       'view_mode_gallery_slide' => 'default',
       'hash_nav_replace_state' => FALSE,
       'breaker_block' => NULL,
@@ -174,11 +175,11 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#default_value' => $this->getSetting('show_preview_headline'),
     ];
 
-    $form['launcher_footer_text'] = [
+    $form['launcher_thumbnails_text'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Show all text'),
-      '#description' => $this->t('The `Show all`-text when thumbnails are selected in the preview footer.'),
-      '#default_value' => $this->getSetting('launcher_footer_text'),
+      '#description' => $this->t('The `Show all`-text when thumbnails are selected in the preview.'),
+      '#default_value' => $this->getSetting('launcher_thumbnails_text'),
     ];
 
     $form['preview_type'] = [
@@ -200,12 +201,12 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#options' => $this->entityDisplayRepository->getViewModeOptionsByBundle('media', 'image'),
     ];
 
-    $form['image_style_preview_image'] = [
+    $form['view_mode_gallery_preview_with_thumbs'] = [
       '#type' => 'select',
-      '#title' => $this->t('Image style: Preview image'),
-      '#description' => $this->t('Image style for the main teaser image in the preview.'),
-      '#default_value' => $this->getSetting('image_style_preview_image'),
-      '#options' => image_style_options(FALSE),
+      '#title' => $this->t('Image viewmode: Gallery preview with thumbnails'),
+      '#description' => $this->t('Used if thumbnails with preview image and first 3 thumbnails is selected in the preview type.'),
+      '#default_value' => $this->getSetting('view_mode_gallery_preview_with_thumbs'),
+      '#options' => $this->entityDisplayRepository->getViewModeOptionsByBundle('media', 'image'),
     ];
 
     $form['image_style_preview_thumbnail'] = [
@@ -466,19 +467,18 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     $build = [
       '#theme' => 'swiper_gallery_preview',
       '#launcher_main_text' => $this->getSetting('launcher_main_text'),
-      '#launcher_footer_text' => $this->getSetting('launcher_footer_text'),
+      '#launcher_thumbnails_text' => $this->getSetting('launcher_thumbnails_text'),
       '#image_count' => count($media),
       '#media' => $this->viewBuilder->view($first_image, $this->getSetting('view_mode_gallery_preview')),
       '#preview_type' => $preview_type,
     ];
 
     if ($preview_type == 'thumbs') {
-      $image_build = $this->viewBuilder->viewField($first_image->field_image, ['label' => 'hidden']);
-      $image_build[0]['#image_style'] = $this->getSetting('image_style_preview_image');
-      $build['#footer_image'] = $image_build;
+      $preview_thumbnails_media = $this->viewBuilder->view($first_image, $this->getSetting('view_mode_gallery_preview_with_thumbs'));
+      $build['#preview_thumbnails_media'] = $preview_thumbnails_media;
 
       foreach (array_slice($media, 1, 3) as $thumb) {
-        $build['#footer_thumbs'][] = [
+        $build['#preview_thumbnails_thumbs'][] = [
           '#theme' => 'image_style',
           '#style_name' => $this->getSetting('image_style_preview_thumbnail'),
           '#uri' => $thumb->field_image->entity->uri->value,

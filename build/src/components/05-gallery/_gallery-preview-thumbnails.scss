@@ -1,4 +1,4 @@
-.gallery-footer {
+.gallery-preview-thumbnails {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -28,6 +28,7 @@
     img {
       width: 100%;
       height: auto;
+      display: block;
     }
   }
 
