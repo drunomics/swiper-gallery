@@ -31,6 +31,9 @@ class Gallery {
   /**
    * Wait parameter for debounce.
    *
+   * Limit smaller than 200 may trigger flickering behavior when resizing the
+   * gallery.
+   *
    * @returns {number}
    */
   static get debounceLimit() {
@@ -62,7 +65,6 @@ class Gallery {
         el: '.gallery__pagination',
         type: 'fraction',
       },
-      centeredSlides: true,
       // Disable preloading of all images.
       preloadImages: false,
       // Enable lazy loading.
@@ -123,7 +125,7 @@ class Gallery {
    *   Gallery will be attached to all elements with this selector.
    */
   static attach(context, settings, selector = '.gallery') {
-    let self = this;
+    const self = this;
     context.querySelectorAll(selector).forEach((element) => {
       if (element.getAttribute('data-gallery-type') !== self.type) {
           return;
@@ -131,7 +133,7 @@ class Gallery {
 
       // Settings can differ depending on which viewmode is attached.
       let instanceSettings = {};
-      for (var key in settings) {
+      for (const key in settings) {
         if (element.classList.contains(key)) {
           instanceSettings = settings[key];
           break;
@@ -140,10 +142,13 @@ class Gallery {
 
       // Remove empty breakers. Since a breaker could be any block really, we
       // do not know if some condition applies which leads to an empty slide.
-      [].forEach.call(element.querySelectorAll('.swiper-slide'), (slide) => {
-        let breaker = slide.querySelector('.gallery-breaker');
+      [].forEach.call(element.querySelectorAll('.gallery__main .swiper-slide-breaker'), (slide) => {
+        const breaker = slide.querySelector('.gallery-breaker');
         if (breaker && breaker.innerHTML.trim().length === 0) {
+          const slideId = slide.getAttribute('data-hash');
+          const thumb = element.querySelector('.gallery__thumbs .swiper-slide[data-hash="' + slideId + '"]');
           slide.parentNode.removeChild(slide);
+          thumb.parentNode.removeChild(thumb);
         }
       });
 
@@ -255,7 +260,7 @@ class Gallery {
    * Otherwise the hash will be the ID of the gallery element.
    */
   initFeatherlight() {
-    let self = this;
+    const self = this;
 
     if (this.active) {
       log.info('reinitialize active instance');
@@ -269,7 +274,7 @@ class Gallery {
     else {
       // Close featherlight when hash state is deleted from URL, otherwise it
       // won't close the gallery when back button is clicked.
-      let onhashchange = () => {
+      const onhashchange = () => {
         if (!location.hash) {
           if (window.jQuery.featherlight.current()) {
             window.jQuery.featherlight.current().close();
@@ -430,21 +435,13 @@ class Gallery {
 
     // Must be done after image slides are updated, so that we have the actual
     // size of the slides.
-    this.fixBreakerSlideHeights();
-  }
-
-  /**
-   * Fixes height of breaker slides.
-   */
-  fixBreakerSlideHeights() {
-    if (Gallery.isMobile()) {
-      return;
+    if (!Gallery.isMobile()) {
+      const firstSlide = this.content.querySelector('.swiper-wrapper').querySelector('.gallery-slide[data-swiper-slide-index="0"]:not(.swiper-slide-duplicate)');
+      const firstSlideHeight = firstSlide.offsetHeight;
+      this.getSlidesByType('breaker').forEach(function (slide) {
+        slide.style.height = firstSlideHeight + 'px';
+      });
     }
-    const firstSlide = this.content.querySelector('.swiper-wrapper').querySelector('.gallery-slide[data-swiper-slide-index="0"]:not(.swiper-slide-duplicate)');
-    const firstSlideHeight = firstSlide.offsetHeight;
-    this.getSlidesByType('breaker').forEach(function (slide, index) {
-      slide.style.height = firstSlideHeight + 'px';
-    });
   }
 
   /**
@@ -602,7 +599,7 @@ class Gallery {
    * Quick address bar hide on devices like the iPhone.
    */
   quickHideAddressBar() {
-    let self = this;
+    const self = this;
 
     window.addEventListener( "load",function() {
       setTimeout(function(){
@@ -634,10 +631,10 @@ class Gallery {
    * @param {string} buttonClass
    */
   preventSwipeOnButton(buttonClass) {
-    let stopPropagation = (e) => {
+    const stopPropagation = (e) => {
       e.stopPropagation();
     };
-    let button = this.swiperContainer.querySelector(buttonClass);
+    const button = this.swiperContainer.querySelector(buttonClass);
     button.addEventListener('mouseDown', stopPropagation);
     button.addEventListener('touchstart', stopPropagation);
   }
@@ -660,7 +657,7 @@ class Gallery {
     if (typeof(this.swiper) === "undefined") {
       return [];
     }
-    let slides = [];
+    const slides = [];
     [].forEach.call(this.swiper.slides, function(slide) {
       if (slide.classList.contains('swiper-slide-' + type)) {
         slides.push(slide);
@@ -676,7 +673,7 @@ class Gallery {
    */
   getSlideHash() {
     if (window.location.hash) {
-      let hash = window.location.hash.substring(1);
+      const hash = window.location.hash.substring(1);
 
       // If the element has the slide with the given ID, launch it.
       if (hash && hash.startsWith(this.slideIdPrefix) && this.element.querySelectorAll("[data-hash='" + hash + "']").length) {

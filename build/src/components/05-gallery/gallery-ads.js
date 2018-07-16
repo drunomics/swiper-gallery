@@ -27,23 +27,23 @@ class GalleryAds {
    *   Slides containing an ad.
    */
   getAdSlides() {
-    let ad_slides = [];
+    const adSlides = [];
     [].forEach.call(this.swiper.slides, function(slide) {
-      let ad_container = slide.querySelectorAll('.ad-entity-container');
-      if (ad_container.length > 0) {
-        ad_slides.push(slide);
+      let adContainer = slide.querySelectorAll('.ad-entity-container');
+      if (adContainer.length > 0) {
+        adSlides.push(slide);
       }
     });
 
-    return ad_slides;
+    return adSlides;
   }
 
   /**
    * Initialize all ads in the gallery.
    */
   initializeAllAds() {
-    this.getAdSlides().forEach(function(ad_slide) {
-      GalleryAds.initializeAd(ad_slide);
+    this.getAdSlides().forEach(function(adSlide) {
+      GalleryAds.initializeAd(adSlide);
     });
   }
 
@@ -53,11 +53,11 @@ class GalleryAds {
    * This will rewrite the ad-entity container id, as well as its sub-div id
    * to make sure we initialize with a unique id, so to not mess up the loading.
    *
-   * @param {Object} ad_slide
+   * @param {Object} adSlide
    *   A slide containing an ad.
    */
-  static initializeAd(ad_slide) {
-    let ad = ad_slide.querySelector('.ad-entity-container');
+  static initializeAd(adSlide) {
+    let ad = adSlide.querySelector('.ad-entity-container');
 
     log.info('initializeAd');
     log.info(ad);
@@ -67,14 +67,14 @@ class GalleryAds {
       return;
     }
 
-    let id = ad.id;
-    let postfix = Math.random().toString(36).substr(2, 3);
+    const id = ad.id;
+    const postfix = Math.random().toString(36).substr(2, 3);
 
     // Fix id.
     ad.id = id + '_' + postfix;
     // The sub element must have a unique id as well.
-    let sub_div = ad.querySelector('div');
-    sub_div.id = sub_div.id + '_' + postfix;
+    const subDiv = ad.querySelector('div');
+    subDiv.id = subDiv.id + '_' + postfix;
 
     // Allow initialization.
     ad.classList.remove('initialization-disabled');

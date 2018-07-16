@@ -434,7 +434,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    * @return array
    */
   protected function buildPreviewHeadline($title, $count) {
-    if (!$this->getSetting('show_preview_headline')) {
+    if (!$this->getSetting('show_preview_headline') || $this->getSetting('preview_type') != 'media') {
       return [];
     }
 

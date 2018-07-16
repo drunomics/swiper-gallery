@@ -37,9 +37,10 @@ class GalleryFsMobileScroll extends Gallery {
         el: '.gallery__pagination',
         type: 'custom',
         renderCustom: function (swiper, current, total) {
-          // The total provided by swiper will be the amount of loaded slides.
+          // The total provided by swiper will be the amount of loaded slides,
+          // there may be unloaded slides outside of the view.
           // We provide the real total value by counting the slides.
-          let slides = self.content.querySelectorAll('.swiper-wrapper')[0].querySelectorAll('.gallery-slide');
+          const slides = self.content.querySelector('.swiper-wrapper').querySelectorAll('.gallery-slide');
           return '<span class="swiper-pagination-current">' + current + '</span> / <span class="swiper-pagination-total">' + slides.length + '</span>';
         },
       },
@@ -50,7 +51,7 @@ class GalleryFsMobileScroll extends Gallery {
    * @inheritdoc
    */
   registerBreakpointConfig() {
-    let self = this;
+    const self = this;
     enquire.register('screen and (max-width:' + Gallery.mobileBreakpoint + 'px)', {
       match: () => {
         // Apply mobile config.
