@@ -81,6 +81,13 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   protected $gallery;
 
   /**
+   * The field items (media images) of the gallery.
+   *
+   * @var \Drupal\Core\Field\FieldItemListInterface
+   */
+  protected $items;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(
@@ -171,7 +178,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     $form['show_preview_headline'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Show preview headline'),
-      '#description' => $this->t('Display a headline with title and image count of the gallery above the preview image.'),
+      '#description' => $this->t('Display a headline with title and image count of the gallery above the image for media preview.'),
       '#default_value' => $this->getSetting('show_preview_headline'),
     ];
 
@@ -271,6 +278,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    * {@inheritdoc}
    */
   public function view(FieldItemListInterface $items, $langcode = NULL) {
+    $this->items = $items;
     $this->gallery = $items->getEntity();
     return parent::view($items, $langcode);
   }
@@ -434,7 +442,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    * @return array
    */
   protected function buildPreviewHeadline($title, $count) {
-    if (!$this->getSetting('show_preview_headline') || $this->getSetting('preview_type') != 'media') {
+    if ($this->getPreviewType() != 'media' || !$this->getSetting('show_preview_headline')) {
       return [];
     }
 
@@ -457,12 +465,8 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    * @return array
    */
   protected function buildPreview(array $media) {
-    $image_count = count($media);
     $first_image = $media[0];
-    $preview_type = $this->getSetting('preview_type');
-    if ($preview_type == 'thumbs' && $image_count < 4) {
-      $preview_type = 'media';
-    }
+    $preview_type = $this->getPreviewType();
 
     $build = [
       '#theme' => 'swiper_gallery_preview',
@@ -504,6 +508,22 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     ];
 
     return $settings;
+  }
+
+  /**
+   * Gets the preview type.
+   *
+   * @return string
+   */
+  protected function getPreviewType() {
+    $image_count = count($this->items);
+    $preview_type = $this->getSetting('preview_type');
+    // Thumbs preview needs at least 4 Images, fallback to media preview.
+    if ($preview_type == 'thumbs' && $image_count < 4) {
+      $preview_type = 'media';
+    }
+
+    return $preview_type;
   }
 
   /**
