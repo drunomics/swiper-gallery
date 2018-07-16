@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "custom-event-polyfill": "^0.3.0",
+    "element-closest": "^2.0.2",
     "enquire.js": "^2.1.6",
     "featherlight": "^1.7.6",
     "idempotent-babel-polyfill": "^6.26.0",

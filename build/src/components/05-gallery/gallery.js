@@ -236,7 +236,7 @@ class Gallery {
     this.hideAddressBar();
     this.quickHideAddressBar();
 
-    let event = new Event('gallery:launched');
+    let event = new CustomEvent('gallery:launched');
     this.originalElement.dispatchEvent(event);
   }
 

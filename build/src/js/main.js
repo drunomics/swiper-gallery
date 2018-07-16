@@ -1,5 +1,7 @@
 import 'idempotent-babel-polyfill';
 import 'nodelist-foreach-polyfill';
+import 'custom-event-polyfill';
+import 'element-closest';
 import log from 'loglevel';
 
 log.disableAll();
