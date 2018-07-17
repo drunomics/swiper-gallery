@@ -3,7 +3,7 @@
   margin: 0;
   border-bottom: solid 1px;
   padding-bottom: $spacing--base;
-  padding-top: $spacing--block;
+  padding-top: $spacing--big;
 
   @include breakpoint($bp--mobile) {
     border-bottom: none;
@@ -13,7 +13,7 @@
 
   &:last-of-type {
     border-bottom: none;
-    padding-bottom: $spacing--block;
+    padding-bottom: $spacing--big;
 
     @include breakpoint($bp--mobile) {
       padding-bottom: 0;

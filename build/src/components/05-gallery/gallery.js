@@ -404,19 +404,6 @@ class Gallery {
       image.parentElement.removeAttribute('style');
 
       let imageWrapper = image.closest('.media-image');
-      let shareLinks = imageWrapper.querySelectorAll('.media__share-links');
-
-      if (shareLinks.clientHeight === 0) {
-        shareLinks.forEach((element) => {
-          element.style.setProperty('margin-bottom', 0);
-          element.style.setProperty('margin-top', 0);
-        })
-        imageWrapper.querySelectorAll('.media__image').forEach((element) => {
-          element.style.setProperty('padding-bottom', 0);
-          element.style.setProperty('margin-top', '4px');
-        })
-      }
-
       if (Gallery.isMobile()) {
         image.style.height = 'auto';
         image.parentElement.removeAttribute('style');

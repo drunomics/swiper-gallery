@@ -103,7 +103,7 @@
   &__counter {
     display: block;
     white-space: nowrap;
-    margin-left: $spacing--block;
+    margin-left: $spacing--big;
     @extend %font-size-large;
     @extend %font-normal--base-italic;
     margin-top: rem(8);
@@ -319,7 +319,7 @@
         display: flex;
         position: absolute;
         left: 0;
-        top: $spacing--block;
+        top: $spacing--big;
       }
     }
   }
@@ -356,7 +356,7 @@
     }
 
     &-total {
-      color: $c--greyish;
+      color: $c--warm-grey;
     }
 
     &--item {

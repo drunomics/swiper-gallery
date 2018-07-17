@@ -1,44 +1,10 @@
-// Color names were derived from http://chir.ag/projects/name-that-color
-
-// Black squeeze (this is a pastel like color - the terrible name is from name-that-color, see top of this file)
-$c--black-squeeze: rgba(232, 241, 247, 1);
-$c--black-squeeze__75: rgba(232, 241, 247, .75);
-$c--black-squeeze_50: rgba(232, 241, 247, .5);
-$c--black-squeeze_25: rgba(232, 241, 247, .25);
-
-// White, black and shades of grey colors
 $c--white: rgba(255, 255, 255, 1);
-$c--white__75: rgba(255, 255, 255, .75);
 $c--white-grey: rgba(242, 242, 242, 1);
-$c--light_grey: rgba(224, 224, 224, 1);
-$c--greyish: rgba(168, 168, 168, 1);
-$c--warm_grey: rgba(128, 128, 128, 1);
-$c--dark_grey: rgba(76, 76, 76, 1);
-$c--text: rgba(51, 51, 51, 1);
+$c--light-grey: rgba(224, 224, 224, 1);
+$c--warm-grey: rgba(168, 168, 168, 1);
+$c--dark-grey: rgba(76, 76, 76, 1);
 $c--black: rgba(0, 0, 0, 1);
 $c--black__90: rgba(0, 0, 0, .9);
 $c--black__85: rgba(0, 0, 0, .85);
 $c--black__75: rgba(0, 0, 0, .75);
 $c--black__25: rgba(0, 0, 0, .25);
-$c--grey: rgba(76, 76, 76, 1);
-$c--grey__light: rgba(224, 224, 224, 1);
-$c--grey__light-dark: rgba(168, 168, 168, 1);
-$c--grey__dark: rgba(64, 64, 64, 1);
-$c--sky-blue: rgb(81, 157, 196);
-$c--transparent: rgba(255,255,255,0);
-
-// Primary and secondary colors
-$c--primary: rgba(228, 0, 58, 1);
-$c--primary__smooth:  rgba(228, 0, 58, .75);
-$c--primary__light:   rgba(228, 0, 58, .5);
-$c--secondary: rgba(51, 51, 51, 1);
-$c--background: $c--white;
-$c--text__light: $c--light_grey;
-
-// Brand colors
-$c--pinterest: rgba(189, 8, 28, 1);
-$c--facebook: rgba(59, 89, 152, 1);
-$c--twitter: rgb(29, 161, 242);
-$c--instagram: rgb(193, 53, 132);
-$c--flipboard: rgb(225, 40, 40);
-$c--whatsapp: rgb(37, 211, 102);
