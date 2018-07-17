@@ -480,7 +480,7 @@ class Gallery {
    *   Bounding box width.
    */
   static fixImageHeightsWidth (image, availableImageHeight, boxImageWidth) {
-    let boxImageHeight = availableImageHeight - (parseInt(image.closest('.media-image').offsetHeight, 10) - parseInt(image.offsetHeight, 10));
+    const boxImageHeight = availableImageHeight - (parseInt(image.closest('.media-image').offsetHeight, 10) - parseInt(image.offsetHeight, 10));
 
     // Remove possible padding to image.
     image.parentElement.style.removeProperty('padding-top');
@@ -489,20 +489,24 @@ class Gallery {
     // First check if original image width and height is smaller than the
     // bounding box. In that case set the width and height to the image's
     // original width and height.
-    let imageHeight = image.getAttribute('height');
-    let imageWidth = image.getAttribute('width');
+    const imageHeight = image.getAttribute('height');
+    const imageWidth = image.getAttribute('width');
+
+    let newHeight = 'inherit';
+    let newWidth = 'inherit';
+
     if (imageHeight <= boxImageHeight && imageWidth <= boxImageWidth) {
       // In case the image height or width could not be calculated when
       // initializing the gallery set initial width and height of the bounding
       // box to the image.
 
       if (imageWidth === 0 || imageHeight === 0) {
-        image.style.height = boxImageHeight + 'px';
-        image.style.width = 'inherit';
+        newHeight = boxImageHeight + 'px';
+        newWidth = 'inherit';
       }
       else {
-        image.style.height = imageHeight + 'px';
-        image.style.width = imageWidth + 'px';
+        newHeight = imageHeight + 'px';
+        newWidth = imageWidth + 'px';
 
         // Add padding to top and bottom to center image.
         if (boxImageHeight > imageHeight) {
@@ -518,8 +522,8 @@ class Gallery {
 
       // Height of image is smaller than bounding box height.
       if (boxImageHeight > imageHeight) {
-        image.style.height = imageCalculatedHeight + 'px';
-        image.style.width = imageCalculatedWidth + 'px';
+        newHeight = imageCalculatedHeight + 'px';
+        newWidth = imageCalculatedWidth + 'px';
 
         let paddingTopBottom = (boxImageHeight - imageCalculatedHeight) / 2;
         image.parentElement.style.setProperty('padding-top', paddingTopBottom + 'px');
@@ -528,15 +532,18 @@ class Gallery {
       else {
         // Height of calculated image is larger than bounding box height.
         if (imageCalculatedHeight >= boxImageHeight) {
-          image.style.height = boxImageHeight + 'px';
-          image.style.width = 'inherit';
+          newHeight = boxImageHeight + 'px';
+          newWidth = 'inherit';
         }
         else {
-          image.style.height = 'inherit';
-          image.style.width = boxImageWidth + 'px';
+          newHeight = 'inherit';
+          newWidth = boxImageWidth + 'px';
         }
       }
     }
+
+    image.style.height = newHeight;
+    image.style.width = newWidth;
   }
 
   /**
