@@ -76,7 +76,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   /**
    * The media gallery.
    *
-   * @var \Drupal\media\Entity\Media
+   * @var \Drupal\media_entity\MediaInterface
    */
   protected $gallery;
 
@@ -150,11 +150,10 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       'launcher_thumbnails_text' => 'Show all',
       'show_preview_headline' => FALSE,
       'preview_type' => 'thumbs',
-      'image_style_preview_image' => 'swiper_gallery_preview',
-      'image_style_preview_thumbnail' => 'swiper_gallery_preview_thumbnail',
       'image_style_gallery_thumbnail' => 'swiper_gallery_thumbnail',
       'view_mode_gallery_preview' => 'default',
       'view_mode_gallery_preview_with_thumbs' => 'default',
+      'view_mode_gallery_preview_thumb' => 'default',
       'view_mode_gallery_slide' => 'default',
       'hash_nav_replace_state' => FALSE,
       'breaker_block' => NULL,
@@ -203,7 +202,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     $form['view_mode_gallery_preview'] = [
       '#type' => 'select',
       '#title' => $this->t('Image viewmode: Gallery preview'),
-      '#description' => $this->t('Used if media viewmode is selected in the preview type, as well as a fallback if the gallery consists of less than 4 images.'),
+      '#description' => $this->t('Viewmode of the media in the preview. Used in Media preview type.'),
       '#default_value' => $this->getSetting('view_mode_gallery_preview'),
       '#options' => $this->entityDisplayRepository->getViewModeOptionsByBundle('media', 'image'),
     ];
@@ -211,17 +210,17 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     $form['view_mode_gallery_preview_with_thumbs'] = [
       '#type' => 'select',
       '#title' => $this->t('Image viewmode: Gallery preview with thumbnails'),
-      '#description' => $this->t('Used if thumbnails with preview image and first 3 thumbnails is selected in the preview type.'),
+      '#description' => $this->t('Viewmode for the main image in the preview. Used in Thumbnails preview type.'),
       '#default_value' => $this->getSetting('view_mode_gallery_preview_with_thumbs'),
       '#options' => $this->entityDisplayRepository->getViewModeOptionsByBundle('media', 'image'),
     ];
 
-    $form['image_style_preview_thumbnail'] = [
+    $form['view_mode_gallery_preview_thumb'] = [
       '#type' => 'select',
-      '#title' => $this->t('Image style: Preview thumbnails'),
-      '#description' => $this->t('Image style for the thumbnails in the preview.'),
+      '#title' => $this->t('Image viewmode: Preview thumbnails'),
+      '#description' => $this->t('Viewmode for the thumbnails in the preview. Used in Thumbnails preview type.'),
       '#default_value' => $this->getSetting('image_style_preview_thumbnail'),
-      '#options' => image_style_options(FALSE),
+      '#options' => $this->entityDisplayRepository->getViewModeOptionsByBundle('media', 'image'),
     ];
 
     $form['view_mode_gallery_slide'] = [
@@ -313,7 +312,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
         ],
       ],
       '#slide_id_prefix' => $this->getSlideIdPrefix(),
-      '#title' => $items->getEntity()->label(),
+      '#title' => $this->getLabel(),
       '#preview_headline' => $preview_headline,
       '#preview' => $preview,
       '#slides' => $this->insertBreaker($slides, $breaker_block),
@@ -325,6 +324,21 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
 
     CacheableMetadata::createFromObject($items->getEntity())->applyTo($build);
     return $build;
+  }
+
+  /**
+   * Gets the label for the gallery.
+   *
+   * @return string
+   */
+  protected function getLabel() {
+    // Skip default label (which states slide count and created date.)
+    $default_label = $this->gallery->getType()->getDefaultName($this->gallery);
+    if ($default_label->render() == $this->gallery->label()) {
+      return '';
+    }
+
+    return $this->gallery->label();
   }
 
   /**
@@ -482,11 +496,8 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       $build['#preview_thumbnails_media'] = $preview_thumbnails_media;
 
       foreach (array_slice($media, 1, 3) as $thumb) {
-        $build['#preview_thumbnails_thumbs'][] = [
-          '#theme' => 'image_style',
-          '#style_name' => $this->getSetting('image_style_preview_thumbnail'),
-          '#uri' => $thumb->field_image->entity->uri->value,
-        ];
+        $thumb_media = $this->viewBuilder->view($thumb, $this->getSetting('view_mode_gallery_preview_thumb'));
+        $build['#preview_thumbnails_thumbs'][] = $thumb_media;
       }
     }
 

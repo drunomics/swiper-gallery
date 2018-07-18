@@ -14,9 +14,6 @@ field.formatter.settings.swiper_gallery:
     launcher_thumbnails_text:
       type: text
       label: 'Launcher thumbnails text'
-    image_style_preview_thumbnail:
-      type: text
-      label: 'Image style preview thumbnail'
     image_style_gallery_thumbnail:
       type: text
       label: 'Image style gallery thumbnail'
@@ -29,6 +26,9 @@ field.formatter.settings.swiper_gallery:
     view_mode_gallery_preview_with_thumbs:
       type: text
       label: 'Image viewmode gallery preview with thumbnails'
+    view_mode_gallery_preview_thumb:
+      type: text
+      label: 'Image viewmode preview thumbnails'
     hash_nav_replace_state:
       type: boolean
       label: 'Hash Navigation: replace url state'
