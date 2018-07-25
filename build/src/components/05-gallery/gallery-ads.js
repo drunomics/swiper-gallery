@@ -17,7 +17,16 @@ class GalleryAds {
     }
 
     this.swiper = swiper;
-    this.initializeAllAds();
+
+    const self = this;
+    // Looping swiper will generate duplicates of slides, in this case we need
+    // to initialize the slides/duplicates when we slide to it.
+    this.swiper.on('slideChangeTransitionStart', function (swiper) {
+      // Initialize ads in the immediate vicinity.
+      for (let i = -2; i < 3; i++) {
+        self.initializeAdSlide(i);
+      }
+    });
   }
 
   /**
@@ -29,13 +38,28 @@ class GalleryAds {
   getAdSlides() {
     const adSlides = [];
     [].forEach.call(this.swiper.slides, function(slide) {
-      let adContainer = slide.querySelectorAll('.ad-entity-container');
-      if (adContainer.length > 0) {
+      if (GalleryAds.slideContainsAd(slide)) {
         adSlides.push(slide);
       }
     });
 
     return adSlides;
+  }
+
+  /**
+   * Initialize ad on current slide.
+   *
+   * @param {int} offset
+   *   The offset to the current slide. eg.: -1 to address the previous slide.
+   */
+  initializeAdSlide(offset) {
+    offset = offset || 0;
+    const index = this.swiper.activeIndex + offset;
+    const slide = this.swiper.slides[index];
+
+    if (GalleryAds.slideContainsAd(slide)) {
+      GalleryAds.initializeAd(slide);
+    }
   }
 
   /**
@@ -86,6 +110,17 @@ class GalleryAds {
     // it as adependency.
     ad = window.jQuery(ad);
     Drupal.ad_entity.restrictAndInitialize([ad], document, drupalSettings);
+  }
+
+  /**
+   * Checks whether the slide contains an ad.
+   *
+   * @param {Object} slide
+   *   Swiper slide.
+   * @returns {boolean}
+   */
+  static slideContainsAd(slide) {
+    return slide.querySelectorAll('.ad-entity-container').length > 0;
   }
 }
 
