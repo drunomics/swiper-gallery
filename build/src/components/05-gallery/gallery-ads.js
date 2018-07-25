@@ -17,11 +17,10 @@ class GalleryAds {
     }
 
     this.swiper = swiper;
-    const context = swiper.el;
-
     this.fixAllAdSlideIds();
 
     // Initialize ads.
+    const context = swiper.el;
     let containers = Drupal.ad_entity.collectAdContainers(context, drupalSettings);
     Drupal.ad_entity.restrictAndInitialize(containers, context, drupalSettings);
   }
@@ -47,8 +46,8 @@ class GalleryAds {
    * Fix ids for all ads in the gallery.
    */
   fixAllAdSlideIds() {
-    this.getAdSlides().forEach(function(adSlide) {
-      GalleryAds.fixAdSlideId(adSlide);
+    this.getAdSlides().forEach(function(slide) {
+      GalleryAds.fixAdSlideId(slide);
     });
   }
 
@@ -58,11 +57,11 @@ class GalleryAds {
    * This will rewrite the ad-entity container id, as well as its sub-div id
    * to make sure we initialize with a unique id, so to not mess up the loading.
    *
-   * @param {Object} adSlide
+   * @param {Object} slide
    *   A slide containing an ad.
    */
-  static fixAdSlideId(adSlide) {
-    let ad = adSlide.querySelector('.ad-entity-container');
+  static fixAdSlideId(slide) {
+    let ad = slide.querySelector('.ad-entity-container');
 
     log.info('initializeAd');
     log.info(ad);
@@ -81,11 +80,10 @@ class GalleryAds {
     const subDiv = ad.querySelector('div');
     subDiv.id = subDiv.id + '_' + postfix;
 
-    // Allow initialization.
-    ad.classList.remove('initialization-disabled');
-    // After sliding through the gallery, more duplicates of initialized
-    // ads will be created, so we have to remove this class as well.
-    ad.classList.remove('initialized');
+    // Allow initialization if its not a duplicated slide.
+    if (!slide.classList.contains('swiper-slide-duplicate')) {
+      ad.classList.remove('initialization-disabled');
+    }
   }
 
   /**
