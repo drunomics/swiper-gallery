@@ -219,7 +219,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#type' => 'select',
       '#title' => $this->t('Image viewmode: Preview thumbnails'),
       '#description' => $this->t('Viewmode for the thumbnails in the preview. Used in Thumbnails preview type.'),
-      '#default_value' => $this->getSetting('image_style_preview_thumbnail'),
+      '#default_value' => $this->getSetting('view_mode_gallery_preview_thumb'),
       '#options' => $this->entityDisplayRepository->getViewModeOptionsByBundle('media', 'image'),
     ];
 
