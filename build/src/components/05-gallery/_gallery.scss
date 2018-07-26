@@ -327,6 +327,10 @@
   &__preview {
     position: relative;
 
+    .field--type-image {
+      margin: 0 !important;
+    }
+
     .field--type-image img {
       width: 100%;
       height: auto;
