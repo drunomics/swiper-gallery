@@ -1,4 +1,5 @@
-# Swiper Gallery
+Swiper Gallery
+==============
 
 Swiper gallery is an integration of http://idangero.us/swiper/ for the 
 media gallery.
@@ -8,10 +9,25 @@ media gallery.
 ### Configuration 
 
 To enable the gallery set a field formatter of a entity reference field of type
-media to `Swiper gallery`.
+media to `Swiper gallery`. 
 
-The gallery comes with default image styles for the preview image, the slides
-and the thumbnails. These can be changed in the field formatter options.
+Step 1: Add and configure media viewmodes for the gallery
+
+Setup viewmodes for:
+
+* The gallery itself (e.g.: `swiper gallery`)
+* The slides inside the gallery (`swiper gallery slide`)
+* The preview image for the media preview (`swiper gallery media preview`)
+* The preview image for the thumbs preview (`swiper gallery thumbs preview`)
+* The thumbnails in the thumbs preview (`swiper gallery thumbs preview thumb`) 
+
+Step 2: Select & configure the `Swiper Gallery` field formatter 
+
+* Goto `/admin/structure/media/manage/gallery/display`
+* Add & select the gallery viewmode (`swiper gallery`)
+* On `Media images` select the format `Swiper Gallery`
+* Open the field formatter settings & assign the viewmodes
+* Optionally configure other settings, like launcher text or breaker blocks
 
 ### Override lazy loading icon
 
