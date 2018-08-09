@@ -7,7 +7,7 @@
 
   &__close {
     @include icomoon-icon-apply('close');
-    font-size: rem(24);
+    font-size: rem(34);
     background: transparent;
     color: $c--white_grey;
     display: inline-block;
@@ -17,7 +17,7 @@
     z-index: 3;
 
     @include breakpoint($bp--mobile) {
-      font-size: rem(32);
+      font-size: rem(34);
       width: 100%;
       max-width: $gallery--max-width;
       margin: 0 auto;
@@ -40,7 +40,7 @@
   &__pagination {
     display: inline-block;
     order: 1;
-    margin-right: $spacing--big + $spacing--double;
+    margin-right: $spacing--double + $spacing--double;
     margin-left: $spacing--base;
     white-space: nowrap;
 
@@ -57,11 +57,12 @@
     padding-left: $spacing--base;
     display: flex;
     width: 100%;
-    min-height: 44px;
+    min-height: 54px;
     opacity: 1;
     background-color: $c--black;
     border-bottom: 1px solid;
     z-index: 2;
+    align-items: center;
 
     @include breakpoint($bp--mobile) {
       border-top: 1px solid;
@@ -88,10 +89,10 @@
     @extend %font-normal--base-italic;
     display: block;
     margin-left: 0;
-    margin-top: rem(8);
     flex-grow: 1;
 
     @include breakpoint($bp--mobile) {
+      margin-top: rem(8);
       font-size: rem(20);
     }
   }
@@ -158,7 +159,7 @@
       }
 
       &__close {
-        font-size: rem(24);
+        font-size: rem(34);
         position: fixed;
         height: rem(15);
         top: 10px;
@@ -350,11 +351,11 @@
     &-custom {
       @extend %font-size-large;
       @extend %font-bold--base-italic;
-      margin-top: rem(8);
       width: auto;
       min-width: rem(2);
 
       @include breakpoint($bp--mobile) {
+        margin-top: rem(8);
         font-size: rem(20);
       }
     }
