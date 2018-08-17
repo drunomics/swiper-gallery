@@ -19,7 +19,6 @@
     @include breakpoint($bp--mobile) {
       font-size: rem(34);
       width: 100%;
-      max-width: $gallery--max-width;
       margin: 0 auto;
       display: block;
       margin-bottom: rem(40);
@@ -67,7 +66,6 @@
     @include breakpoint($bp--mobile) {
       border-top: 1px solid;
       border-bottom: none;
-      max-width: $gallery--max-width;
       margin: 0 auto;
       padding: $spacing--half 0;
       position: relative;
@@ -111,7 +109,6 @@
   }
 
   &.is-inactive {
-    max-width: $gallery--max-width;
     margin: 0 auto;
 
     .gallery {
@@ -204,7 +201,6 @@
 
   .gallery__preview-image {
     width: 100%;
-    max-width: $gallery--max-width;
     position: relative;
     display: inline-block;
 
@@ -246,7 +242,6 @@
   }
 
   &__button-wrapper {
-    max-width: $gallery--max-width;
     position: fixed;
     z-index: 10;
     width: 100%;
@@ -271,7 +266,6 @@
     display: none;
     height: 120px;
     box-sizing: border-box;
-    max-width: $gallery--max-width;
 
     @include breakpoint($bp--mobile) {
       display: block;

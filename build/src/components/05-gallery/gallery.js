@@ -348,13 +348,6 @@ class Gallery {
       this.content.parentElement.classList.remove('is-landscape');
     }
 
-    if (windowwidth > 1000) {
-      this.content.parentElement.classList.add('has-media-compensation');
-    }
-    else {
-      this.content.parentElement.classList.remove('has-media-compensation');
-    }
-
     let featherlightContent = document.querySelector('.featherlight-content');
     featherlightContent.removeAttribute('style');
 
@@ -379,21 +372,9 @@ class Gallery {
     // and padding of image area.
     let availableImageHeight = galleryHeightWidth.height - thumbHeight - headerHeight  - headerOffset - flPaddingTopBottom;
 
-    // Set the maximum available height to 600px if more space should be
-    // available.
-    if (availableImageHeight > 600) {
-      availableImageHeight = 600;
-    }
-
     // Available width of a gallery image is the remaining width of the gallery
     // content area minus padding of image area.
     let boxImageWidth = galleryHeightWidth.width - flPaddingLeftRight;
-
-    // Set the maximum available width to 1000px if more space should be
-    // available.
-    if (boxImageWidth > 1000) {
-      boxImageWidth = 1000;
-    }
 
     // Convert the HTML Collection to an array.
     images = [...images];
