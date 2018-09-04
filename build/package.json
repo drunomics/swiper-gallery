@@ -8,16 +8,16 @@
   "devDependencies": {
     "bourbon": "^4.3.4",
     "breakpoint-sass": "^2.7.1",
-    "cross-env": "^3.2.3",
+    "cross-env": "^5.2.0",
     "import-glob-loader": "^1.1.0",
-    "jquery": "^2.2.4",
-    "laravel-mix": "^0.8.3",
+    "jquery": "^3.3.1",
+    "laravel-mix": "^2.1.14",
     "normalize.scss": "^0.1.0",
     "singularitygs": "^1.8.0"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
-    "custom-event-polyfill": "^0.3.0",
+    "custom-event-polyfill": "^1.0.6",
     "element-closest": "^2.0.2",
     "enquire.js": "^2.1.6",
     "featherlight": "^1.7.6",
