@@ -1,5 +1,4 @@
 # Laravel Mix / Webpack 2 / Swiper Gallery
-(c) drunomics GmbH, hello@drunomics.com
 
 ## External resources
 * Laravel mix documentation: https://laravel.com/docs/5.4/mix
@@ -25,11 +24,7 @@
   * js: Contains the Javascript source files (ES6) which are not component
     related, i.e. usually just basic setup. As all JS, those files are
     transpiled with Babel.
-  * components: Here is the interesting part - all frontend components. Those
-    are split into:
-    * base: Base-setup like colors, breakpoints and styling of elements.
-    * site-elements: Contains various site elements.
-    * content: Various content elements, its various display variants.
+  * components: Here are the frontend components.
   
 ## Configuration overview
  
