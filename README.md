@@ -25,8 +25,8 @@ for the media gallery.
 
 ## Introduction
 
-This module provides a field formatter for rendering images in a preconfigured 
-[Swiper](http://idangero.us/swiper/) gallery.
+This module provides a field formatter that allows a media gallery to be 
+rendered in a preconfigured [Swiper](http://idangero.us/swiper/) gallery.
 
 ### Features
 

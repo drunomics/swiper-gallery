@@ -166,7 +166,3 @@ $ls--mono: $ls--base;
   @include applyFontProperty('xxlarge', 'font-size');
   @include applyFontProperty('xxlarge', 'line-height');
 }
-
-.visually-hidden {
-  display: none;
-}
