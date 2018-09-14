@@ -89,8 +89,13 @@ Ad entities can be inserted via breaker block (see [Ad entities as breakers](#ad
 
 To enable the gallery, the field formatter for a media gallery must be set to 
 `Swiper gallery` ([Gallery formatter](#gallery-formatter)). 
+
 Since the viewmodes of the slides & preview are also configurable, they should 
 be set up first ([Image viewmodes](#image-viewmodes)).
+
+It is important to use a separate image style for the gallery slides since it
+is necessary to alter the image tags to be able to lazy load them with swiper.
+This is done in a preprocess hook (see swiper_gallery_preprocess_image()).
 
 ### Image viewmodes
 
@@ -103,6 +108,7 @@ Add and configure image viewmodes for the gallery:
    * The preview image for the media preview (`swiper gallery media preview`)
    * The preview image for the thumbs preview (`swiper gallery thumbs preview`)
    * The thumbnails in the thumbs preview (`swiper gallery thumbs preview thumb`) 
+ * Create an image style for the gallery slides & set it in the slide viewmode
 
 ### Gallery formatter
 

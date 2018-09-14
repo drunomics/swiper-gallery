@@ -5,6 +5,8 @@
  * Module file.
  */
 
+use Drupal\swiper_gallery\Plugin\Field\FieldFormatter\SwiperGalleryFormatter;
+
 /**
  * Implements hook_theme().
  */
@@ -79,10 +81,39 @@ function swiper_gallery_theme($existing, $type, $theme, $path) {
  * Implements template_preprocess_image().
  */
 function swiper_gallery_preprocess_image(&$variables) {
+  static $slide_styles = [];
+
+  // Collect the image styles which are used for the slides.
+  if (empty($slide_styles)) {
+    $gallery_view_modes = \Drupal::service('entity_display.repository')
+      ->getViewModeOptionsByBundle('media', 'gallery');
+
+    foreach (array_keys($gallery_view_modes) as $gallery_view_mode) {
+      $gallery_renderer = \Drupal::service('entity_type.manager')
+        ->getStorage('entity_view_display')
+        ->load('media.gallery.' . $gallery_view_mode)
+        ->getRenderer('field_media_images');
+
+      if ($gallery_renderer instanceof SwiperGalleryFormatter) {
+        $gallery_settings = $gallery_renderer->getSettings();
+        $slide_view_mode = $gallery_settings['view_mode_gallery_slide'];
+        $slide_settings = \Drupal::service('entity_type.manager')
+          ->getStorage('entity_view_display')
+          ->load('media.image.' . $slide_view_mode)
+          ->getRenderer('field_image')
+          ->getSettings();
+
+        if (!empty($slide_settings['image_style'])) {
+          $slide_styles[] = $slide_settings['image_style'];
+        }
+      }
+    }
+  }
+
   // For all gallery images remove the src attribute and replace it with
   // data-src attribute and add class swiper-lazy to be able to lazy load
   // images.
-  if ($variables['style_name'] == 'swiper_gallery_slide') {
+  if (in_array($variables['style_name'], $slide_styles)) {
     $variables['attributes']['data-src'] = $variables['attributes']['src'];
     $variables['attributes']['class'] = 'swiper-lazy';
     unset($variables['attributes']['src']);
