@@ -10,6 +10,7 @@ for the media gallery.
    * [Table of content](#table-of-content)
    * [Introduction](#introduction)
      * [Features](#features)
+     * [Limitations](#limitations)
      * [Browser support](#browser-support)
    * [Requirements](#requirements)
    * [Supported Modules](#supported-modules)
@@ -36,6 +37,11 @@ rendered in a preconfigured [Swiper](http://idangero.us/swiper/) gallery.
  * Breaker blocks which are inserted after every x image.
  * Url navigation to slides & option to replace history for every slide.
  * Track page impressions for IVW and GTM if available.
+ 
+### Limitations
+
+ * No configuration of the swiper instance, all is preconfigured.
+ * Gallery slides can not be used with responsive image styles.
 
 ### Browser support
 
