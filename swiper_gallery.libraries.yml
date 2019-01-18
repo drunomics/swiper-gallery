@@ -7,3 +7,4 @@ swiper_gallery:
       build/assets/main.css: { minified: true }
   dependencies:
     - core/drupalSettings
+    - core/jquery

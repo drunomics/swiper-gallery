@@ -3,7 +3,7 @@
  * Defines Javascript behaviors for the swiper gallery module.
  */
 
-(function ($, Drupal) {
+(function (Drupal) {
 
   'use strict';
 
@@ -18,4 +18,4 @@
     }
   };
 
-})(jQuery, Drupal);
+})(Drupal);
