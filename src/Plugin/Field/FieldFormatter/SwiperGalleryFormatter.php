@@ -296,7 +296,6 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
     $slides = $this->buildSlides($entities);
     $preview_headline = $this->buildPreviewHeadline($items->getEntity()->label(), count($entities));
     $thumbnails = $this->buildImages($entities, 'swiper_gallery_thumbnail', $this->getSetting('image_style_gallery_thumbnail'));
-    $referring_paragraph = $items->getEntity()->_referringItem->getEntity();
 
     /** @var \Drupal\Core\Block\BlockPluginInterface $breaker_block */
     $breaker_block = $this->blockManager->createInstance($this->getSetting('breaker_block'));
@@ -318,7 +317,6 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       '#slides' => $this->insertBreaker($slides, $breaker_block),
       '#thumbnails' => $this->insertBreaker($thumbnails, $breaker_block, TRUE),
       '#gallery_id' => $this->gallery->id(),
-      '#paragraph_id' => $referring_paragraph->id(),
       '#viewmode' => $this->viewMode,
     ];
 
@@ -543,8 +541,11 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    * @return string
    */
   protected function getSlideIdPrefix() {
-    $paragraph = $this->gallery->_referringItem->getEntity();
-    $hash = substr(md5($paragraph->id() . $this->gallery->id()), 0, 5);
+    $referring_entity_id = '';
+    if (!empty($this->gallery->_referringItem)) {
+      $referring_entity_id = $this->gallery->_referringItem->getEntity()->id();
+    }
+    $hash = substr(md5($referring_entity_id . $this->gallery->id()), 0, 5);
     return "slide-{$hash}-";
   }
 
