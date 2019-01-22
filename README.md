@@ -97,6 +97,11 @@ It is important to use a separate image style for the gallery slides since it
 is necessary to alter the image tags to be able to lazy load them with swiper.
 This is done in a preprocess hook (see swiper_gallery_preprocess_image()).
 
+The used image styles for the slides must then be added to the settings file.
+To do so, copy the `/config/install/swiper_gallery.settings.yml` to Drupal's
+config directory if it wasn't done so during the installation and add one or
+more image styles to the `slide_image_styles` variable.
+
 ### Image viewmodes
 
 Add and configure image viewmodes for the gallery:
