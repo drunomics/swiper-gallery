@@ -208,6 +208,11 @@
     .field--type-image, .media__image {
       margin: 0;
     }
+
+    img {
+      width: 100%;
+      height: auto;
+    }
   }
 
   .media__image {
