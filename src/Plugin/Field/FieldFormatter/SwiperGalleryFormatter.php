@@ -332,7 +332,10 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   protected function getLabel() {
     // Skip default label (which states slide count and created date.)
     $default_label = $this->gallery->getType()->getDefaultName($this->gallery);
-    if ($default_label->render() == $this->gallery->label()) {
+    if (method_exists($default_label, 'render')) {
+      $default_label = $default_label->render();
+    }
+    if ($default_label == $this->gallery->label()) {
       return '';
     }
 
