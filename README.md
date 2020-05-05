@@ -61,7 +61,7 @@ rendered in a preconfigured [Swiper](http://idangero.us/swiper/) gallery.
 
 ## Requirements
 
- * [Media entity | Drupal.org](https://www.drupal.org/project/media_entity)
+ * [D8 Media core module | Drupal.org](https://www.drupal.org/docs/8/core/modules/media)
 
 
 ## Supported Modules

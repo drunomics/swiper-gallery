@@ -76,7 +76,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   /**
    * The media gallery.
    *
-   * @var \Drupal\media_entity\MediaInterface
+   * @var \Drupal\media\MediaInterface
    */
   protected $gallery;
 
@@ -286,7 +286,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
-    /** @var \Drupal\media_entity\Entity\Media[] $entities */
+    /** @var \Drupal\media\MediaInterface[] $entities */
     $entities = $this->getEntitiesToView($items, $langcode);
     if (empty($entities)) {
       return [];
@@ -345,7 +345,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   /**
    * Gets the build for the gallery slides.
    *
-   * @param \Drupal\media_entity\Entity\Media[] $entities
+   * @param \Drupal\media\MediaInterface[] $entities
    *   Media entities to render.
    *
    * @return array
@@ -415,7 +415,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   /**
    * Gets the build for the images of the gallery.
    *
-   * @param \Drupal\media_entity\Entity\Media[] $entities
+   * @param \Drupal\media\MediaInterface[] $entities
    *   Media entities to render.
    * @param string $theme
    *   Theme template.
@@ -474,7 +474,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
   /**
    * Builds the preview image with the launcher.
    *
-   * @param \Drupal\media_entity\Entity\Media[] $media
+   * @param \Drupal\media\MediaInterface[] $media
    *   The media containing the image.
    *
    * @return array
