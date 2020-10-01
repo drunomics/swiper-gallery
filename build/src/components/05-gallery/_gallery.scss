@@ -1,4 +1,4 @@
-@import '~swiper/dist/css/swiper.css';
+@import '~swiper/swiper-bundle.css';
 
 .gallery {
   .gallery-launcher {
@@ -319,7 +319,7 @@
       &-wrapper {
         display: flex;
         position: absolute;
-        left: 0;
+        left: -50%;
         top: $spacing--big;
       }
     }
