@@ -108,6 +108,7 @@ class Gallery {
       touchRatio: 0.2,
       slideToClickedSlide: true,
       watchSlidesVisibility: true,
+      lazy: true,
     };
   }
 
