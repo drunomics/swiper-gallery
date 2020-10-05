@@ -1,4 +1,4 @@
-import Swiper from 'swiper/dist/js/swiper.js';
+import Swiper from 'swiper/swiper-bundle.cjs.js';
 import 'featherlight/release/featherlight.min';
 import log from 'loglevel';
 import { debounce } from 'underscore';
@@ -108,6 +108,7 @@ class Gallery {
       touchRatio: 0.2,
       slideToClickedSlide: true,
       watchSlidesVisibility: true,
+      lazy: true,
     };
   }
 
