@@ -3,5 +3,6 @@ name: Swiper Gallery
 description: 'Responsive JavaScript Image Gallery.'
 package: Media
 core: 8.x
+core_version_requirement: ^8 || ^9
 dependencies:
   - drupal:media (>= 8.4)
