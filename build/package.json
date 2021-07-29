@@ -24,7 +24,7 @@
     "idempotent-babel-polyfill": "^6.26.0",
     "loglevel": "^1.4.1",
     "nodelist-foreach-polyfill": "^1.2.0",
-    "swiper": "^6.3.2",
+    "swiper": "^6.5.1",
     "underscore": "^1.8.3"
   }
 }
