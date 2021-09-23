@@ -150,6 +150,7 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
       'launcher_thumbnails_text' => 'Show all',
       'show_preview_headline' => FALSE,
       'preview_type' => 'thumbs',
+      'media_image_field' => 'field_image',
       'image_style_gallery_thumbnail' => 'swiper_gallery_thumbnail',
       'view_mode_gallery_preview' => 'default',
       'view_mode_gallery_preview_with_thumbs' => 'default',
@@ -197,6 +198,13 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
         'media' => $this->t('Media viewmode (can be choseon below)'),
         'thumbs' => $this->t('Thumbnails (Preview image & first 3 thumbnails)'),
       ],
+    ];
+
+    $form['media_image_field'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Media image field'),
+      '#description' => $this->t('The fieldname on the media entity that contains the image.'),
+      '#default_value' => $this->getSetting('media_image_field'),
     ];
 
     $form['view_mode_gallery_preview'] = [
@@ -428,8 +436,9 @@ class SwiperGalleryFormatter extends EntityReferenceFormatterBase implements Con
    */
   protected function buildImages(array $entities, $theme, $image_style, $variant = 'imageonly') {
     $build = [];
+    $media_image_field = $this->getSetting('media_image_field');
     foreach ($entities as $entity) {
-      $image_build = $this->viewBuilder->viewField($entity->field_image, ['label' => 'hidden']);
+      $image_build = $this->viewBuilder->viewField($entity->{$media_image_field}, ['label' => 'hidden']);
       $image_build[0]['#image_style'] = $image_style;
 
       $build[] = [
