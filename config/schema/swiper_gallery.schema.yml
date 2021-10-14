@@ -14,6 +14,9 @@ field.formatter.settings.swiper_gallery:
     launcher_thumbnails_text:
       type: text
       label: 'Launcher thumbnails text'
+    media_image_field:
+      type: text
+      label: 'Media image field'
     image_style_gallery_thumbnail:
       type: text
       label: 'Image style gallery thumbnail'
